@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hans">
+	<head>
+		<title>导出工程压缩包</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	</head>
+	<body>
+		<p style="font-size: 11px">如果在浏览器使用，请在下载开始后在地址栏允许连续多次自动下载文件，推荐在工作区点击批量下载按钮，速度更快。</p>
+		<p style="font-size: 11px">导出的 <code>.epro</code> 文件，可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
+		<span style="font-size: 14px">请选择团队：</span>
+		<select id="teamSelect" style="max-width: 140px">
+			<option value="">---</option>
+		</select>
+		<br />
+		<br />
+		<input id="exportButton" value="导出" type="button" />
+		<script type="text/javascript">
+			document.getElementById('teamSelect').onclick = async function () {
+				if (document.getElementById('teamSelect').options.length <= 1) {
+					const teams = await eda.dmt_Team.getAllTeamsInfo();
+					for (const team of teams) {
+						const optionElement = document.createElement('option');
+						optionElement.innerHTML = team.name;
+						optionElement.value = team.uuid;
+						document.getElementById('teamSelect').appendChild(optionElement);
+					}
+				}
+			};
+
+			document.getElementById('exportButton').onclick = async function () {
+				const teamUuid = document.getElementById('teamSelect').value;
+				if (!teamUuid) {
+					return;
+				}
+				const projectUuids = await eda.dmt_Project.getAllProjectsUuid(teamUuid);
+				// 当前没有办法使用 request 请求权限，只能让用户手动赋予权限，或在批量下载的时候触发浏览器的权限弹窗
+				// 如果该网域的【下载多个文件】的权限之前已被设置为 deny，那么无论如何也无法通过编程的方式唤起浏览器权限弹窗
+				// https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API/Using_the_Permissions_API#conclusion_and_future_work
+				for (const projectUuid of projectUuids) {
+					await eda.sys_FileSystem.saveFile(await eda.sys_FileManager.getProjectFileByProjectUuid(projectUuid));
+				}
+			};
+		</script>
+	</body>
+</html>

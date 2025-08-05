@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-Hans">
+	<head>
+		<title>导出封装压缩包</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=footprint-width, initial-scale=1.0" />
+	</head>
+	<body>
+		<p style="font-size: 11px">如果在浏览器使用该功能，请在下载开始后在地址栏允许连续多次自动下载文件。</p>
+		<p style="font-size: 11px">导出的 <code>.elibz</code> 文件，可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
+		<table>
+			<tbody>
+				<tr>
+					<td align="right"><span style="font-size: 14px">导出库所属：</span></td>
+					<td>
+						<select id="librarySelect" style="max-width: 160px">
+							<option value="">---</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td align="right"><span style="font-size: 14px">每次导出数量：</span></td>
+					<td><input type="number" style="width: 50px" value="2000" id="itemsOfPage" min="1" max="2000" /></td>
+				</tr>
+				<tr>
+					<td align="right"><span style="font-size: 14px" id="exportAllSpan">导出全部封装：</span></td>
+					<td><input type="checkbox" value="yes" id="exportAll" /></td>
+				</tr>
+				<tr>
+					<td align="right"><span style="font-size: 14px">从第几次开始导出：</span></td>
+					<td><input type="number" style="width: 50px" value="1" id="page" min="1" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<input id="exportButton" value="导出" type="button" />&nbsp;
+		<span id="messageBar" style="font-size: 11px">请设置导出参数</span>
+		<script type="text/javascript">
+			document.getElementById('exportAll').onclick = function () {
+				if (document.getElementById('exportAll').checked) {
+					document.getElementById('page').disabled = true;
+				} else {
+					document.getElementById('page').disabled = false;
+				}
+			};
+
+			document.getElementById('exportAllSpan').onclick = function () {
+				document.getElementById('exportAll').checked = !document.getElementById('exportAll').checked;
+				if (document.getElementById('exportAll').checked) {
+					document.getElementById('page').disabled = true;
+				} else {
+					document.getElementById('page').disabled = false;
+				}
+			};
+
+			document.getElementById('librarySelect').onclick = async function () {
+				if (document.getElementById('librarySelect').options.length <= 1) {
+					const libraries = [];
+					let personalLibraryUuid = await eda.lib_LibrariesList.getPersonalLibraryUuid();
+					if (personalLibraryUuid && personalLibraryUuid.uuid) {
+						personalLibraryUuid = personalLibraryUuid.uuid;
+					}
+					personalLibraryUuid && libraries.push({ name: '个人', uuid: personalLibraryUuid });
+					const projectLibraryUuid = await eda.lib_LibrariesList.getProjectLibraryUuid();
+					projectLibraryUuid && libraries.push({ name: '工程', uuid: projectLibraryUuid });
+					const favoriteLibraryUuid = await eda.lib_LibrariesList.getFavoriteLibraryUuid();
+					favoriteLibraryUuid && libraries.push({ name: '收藏', uuid: favoriteLibraryUuid });
+					const librariesFetched = await eda.lib_LibrariesList.getAllLibrariesList();
+					libraries.push(...librariesFetched);
+					for (const library of libraries) {
+						const optionElement = document.createElement('option');
+						optionElement.innerHTML = library.name;
+						optionElement.value = library.uuid;
+						document.getElementById('librarySelect').appendChild(optionElement);
+					}
+				}
+			};
+
+			document.getElementById('exportButton').onclick = async function () {
+				document.getElementById('exportButton').disabled = true;
+				document.getElementById('messageBar').innerHTML = '开始导出';
+
+				if (eda.sys_Environment.isClient() && eda.sys_Environment.isOfflineMode()) {
+					eda.sys_PanelControl.openBottomPanel('library');
+				}
+
+				const libraryUuid = document.getElementById('librarySelect').value;
+				const itemsOfPage = Number(document.getElementById('itemsOfPage').value);
+				let page = Number(document.getElementById('page').value);
+				const exportAll = document.getElementById('exportAll').checked;
+				if (!libraryUuid || !itemsOfPage || (page < 1 && !exportAll)) {
+					document.getElementById('messageBar').innerHTML = '未选择导出的库';
+					document.getElementById('exportButton').disabled = false;
+					return;
+				}
+
+				if (exportAll) {
+					page = 0;
+					while (true) {
+						page++;
+						document.getElementById('messageBar').innerHTML = '正在获取封装列表';
+						const footprints = await eda.lib_Footprint.search('', libraryUuid, undefined, itemsOfPage, page);
+						if (!footprints.length) {
+							if (page === 0) {
+								document.getElementById('messageBar').innerHTML = '没有封装可供导出';
+							} else {
+								document.getElementById('messageBar').innerHTML = '导出已完成';
+							}
+							document.getElementById('exportButton').disabled = false;
+							return;
+						}
+						// [单页封装导出开始]
+						// const zip = new JSZip();
+						// for (const [footprintIndex, footprint] of footprints.entries()) {
+						// 	document.getElementById('messageBar').innerHTML =
+						// 		'正在导出第 ' + page.toString() + ' 页 (' + (footprintIndex + 1).toString() + '/' + footprints.length.toString() + ')';
+						// 	const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(Footprint.uuid, libraryUuid);
+						// 	zip.file(
+						// 		'ProLib_' +
+						// 			libraryUuid +
+						// 			'_' +
+						// 			itemsOfPage.toString() +
+						// 			'_' +
+						// 			page.toString() +
+						// 			'_' +
+						// 			(footprintIndex + 1).toString() +
+						// 			'.elibz',
+						// 		footprintFile,
+						// 	);
+						// }
+						// document.getElementById('messageBar').innerHTML = '正在下载第 ' + page.toString() + ' 页的所有封装';
+						// const pageNow = page; // 为了解决异步操作时 page 已自增的问题
+						// zip.generateAsync({ type: 'blob' }).then(async (blob) => {
+						// 	await eda.sys_FileSystem.saveFile(
+						// 		new File([blob], 'footprint_' + libraryUuid + '_' + itemsOfPage.toString() + '_' + pageNow.toString() + '.zip'),
+						// 	);
+						// });
+						// [单页封装导出结束]
+						// [单页封装导出开始]
+						document.getElementById('messageBar').innerHTML = '正在导出第 ' + page.toString() + ' 页';
+						const footprintUuids = [];
+						for (const footprint of footprints) {
+							footprintUuids.push(footprint.uuid);
+						}
+						const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(footprintUuids, libraryUuid);
+						await eda.sys_FileSystem.saveFile(footprintFile, footprintFile.name.split('.')[0] + '_' + page.toString() + '.elibz');
+						// [单页封装导出结束]
+						if (footprints.length < itemsOfPage) {
+							// 最后一页结束循环
+							document.getElementById('messageBar').innerHTML = '导出已完成';
+							document.getElementById('exportButton').disabled = false;
+							return;
+						}
+					}
+				} else {
+					if (page < 1 || itemsOfPage < 1) {
+						document.getElementById('messageBar').innerHTML = '导出封装数或页数不能为零';
+						document.getElementById('exportButton').disabled = false;
+						return;
+					}
+					document.getElementById('messageBar').innerHTML = '正在获取封装列表';
+					const footprints = await eda.lib_Footprint.search('', libraryUuid, undefined, itemsOfPage, page);
+					if (!footprints.length) {
+						document.getElementById('messageBar').innerHTML = '没有封装可供导出';
+						document.getElementById('exportButton').disabled = false;
+						return;
+					}
+					// [单页封装导出开始]
+					// const zip = new JSZip();
+					// for (const [footprintIndex, footprint] of footprints.entries()) {
+					// 	document.getElementById('messageBar').innerHTML =
+					// 		'正在导出第 ' + page.toString() + ' 页 (' + (footprintIndex + 1).toString() + '/' + footprints.length.toString() + ')';
+					// 	const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(footprint.uuid, libraryUuid);
+					// 	zip.file(
+					// 		'ProLib_' +
+					// 			libraryUuid +
+					// 			'_' +
+					// 			itemsOfPage.toString() +
+					// 			'_' +
+					// 			page.toString() +
+					// 			'_' +
+					// 			(footprintIndex + 1).toString() +
+					// 			'.elibz',
+					// 		footprintFile,
+					// 	);
+					// }
+					// document.getElementById('messageBar').innerHTML = '正在下载第 ' + page.toString() + ' 页的所有封装';
+					// zip.generateAsync({ type: 'blob' }).then(async (blob) => {
+					// 	await eda.sys_FileSystem.saveFile(
+					// 		new File([blob], 'footprint_' + libraryUuid + '_' + itemsOfPage.toString() + '_' + page.toString() + '.zip'),
+					// 	);
+					// });
+					// [单页封装导出结束]
+					// [单页封装导出开始]
+					document.getElementById('messageBar').innerHTML = '正在导出第 ' + page.toString() + ' 页';
+					const footprintUuids = [];
+					for (const footprint of footprints) {
+						footprintUuids.push(footprint.uuid);
+					}
+					const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(footprintUuids, libraryUuid);
+					let footprintFileName = footprintFile?.name || 'ProLib.elibz';
+					await eda.sys_FileSystem.saveFile(footprintFile, footprintFileName.split('.')[0] + '_' + page.toString() + '.elibz');
+					// [单页封装导出结束]
+				}
+				document.getElementById('messageBar').innerHTML = '导出已完成';
+				document.getElementById('exportButton').disabled = false;
+			};
+		</script>
+	</body>
+</html>

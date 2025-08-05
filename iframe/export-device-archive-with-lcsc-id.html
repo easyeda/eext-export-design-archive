@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="zh-Hans">
+	<head>
+		<title>导出器件压缩包</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	</head>
+	<body>
+		<p style="font-size: 11px">导出的 <code>.elibz</code> 文件，可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
+		<textarea
+			id="lcscId"
+			rows="5"
+			placeholder="请输入立创 C 编号，多个编号使用英文逗号或换行分隔，导出时将从 嘉立创EDA 系统库进行导出。"
+			autocapitalize="characters"
+			autocomplete="off"
+			minlength="2"
+			spellcheck="false"
+			style="resize: none; width: 280px"
+			required="true"
+		></textarea>
+		<br />
+		<input id="exportButton" value="导出" type="button" />&nbsp;
+		<span id="messageBar" style="font-size: 11px">请设置导出参数</span>
+		<script type="text/javascript">
+			document.getElementById('exportButton').onclick = async function () {
+				document.getElementById('exportButton').disabled = true;
+				document.getElementById('lcscId').readonly = true;
+				document.getElementById('messageBar').innerHTML = '开始导出';
+				const systemLibraryUuid = await eda.lib_LibrariesList.getSystemLibraryUuid();
+				const lcscIdString = await document.getElementById('lcscId').value;
+				if (!systemLibraryUuid) {
+					document.getElementById('messageBar').innerHTML = '未选择导出的库';
+					document.getElementById('exportButton').disabled = false;
+					document.getElementById('lcscId').readonly = false;
+					return;
+				}
+
+				/**
+				 * 解析多行 C 编号并去重
+				 *
+				 * @param str - 多行 C 编号
+				 * @returns C 编号数组
+				 */
+				function multiLineStrToArray(str) {
+					// 按行拆分字符串
+					const strList = str.split(/[\r\n]+/);
+					const returnList = [];
+					for (const strLine of strList) {
+						const str = strLine.trim();
+						if (str.match(/^C[1-9]{1}[0-9]*$/g)) {
+							returnList.push(str);
+						}
+					}
+					// 去重
+					return Array.from(new Set(returnList));
+				}
+
+				const lcscIdList = multiLineStrToArray(lcscIdString.replace(/[,，]+/g, '\n'));
+				console.log('[INFO] lcscIdList: ', lcscIdList);
+				document.getElementById('messageBar').innerHTML = '正在查询器件 (0/' + lcscIdList.length.toString() + ')';
+				const deviceUuids = [];
+				const unmatchedLcscIdList = [];
+				for (const lcscId of lcscIdList) {
+					document.getElementById('messageBar').innerHTML =
+						'正在查询器件 (' +
+						(deviceUuids.length + unmatchedLcscIdList.length + 1).toString() +
+						'/' +
+						lcscIdList.length.toString() +
+						')';
+					const searchResult = await eda.lib_Device.search(lcscId, systemLibraryUuid, undefined, 2, 15, 1);
+					let isSearched = false;
+					for (const resultLine of searchResult) {
+						if (resultLine.supplierId === lcscId) {
+							deviceUuids.push(resultLine.uuid);
+							isSearched = true;
+							break;
+						}
+					}
+					if (!isSearched) {
+						unmatchedLcscIdList.push(lcscId);
+					}
+				}
+				console.log('[INFO] deviceUuids: ', deviceUuids);
+
+				if (deviceUuids.length >= 1) {
+					document.getElementById('messageBar').innerHTML = '正在导出 ' + deviceUuids.length.toString() + ' 个器件';
+					await eda.sys_FileSystem.saveFile(await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, systemLibraryUuid));
+					if (unmatchedLcscIdList.length === 0) {
+						document.getElementById('messageBar').innerHTML = '导出已完成';
+						eda.sys_ToastMessage.showMessage('导出已完成，成功导出 ' + deviceUuids.length.toString() + ' 个器件', 3);
+					} else {
+						document.getElementById('messageBar').innerHTML = '导出已完成，但存在错误';
+						eda.sys_ToastMessage.showMessage('导出已完成，但存在 ' + unmatchedLcscIdList.length.toString() + ' 个未匹配的器件', 1);
+						eda.sys_MessageBox.showInformationMessage(
+							'导出已完成，成功导出 ' +
+								deviceUuids.length.toString() +
+								' 个器件，有 ' +
+								unmatchedLcscIdList.length.toString() +
+								'个 C 编号未匹配到器件，分别为：\n' +
+								unmatchedLcscIdList.join(', '),
+							'导出结果',
+						);
+					}
+				} else {
+					document.getElementById('messageBar').innerHTML = '导出失败';
+					eda.sys_ToastMessage.showMessage('导出失败，未匹配到任何器件', 0);
+					eda.sys_MessageBox.showInformationMessage('导出失败，未匹配到任何器件', '导出结果');
+				}
+
+				document.getElementById('exportButton').disabled = false;
+				document.getElementById('lcscId').readonly = false;
+			};
+		</script>
+	</body>
+</html>

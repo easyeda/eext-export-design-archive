@@ -1,0 +1,160 @@
+{
+	"name": "export-design-archive",
+	"uuid": "oxvueccubpdwc6dzzexy4dumxyfueu26",
+	"displayName": "导出设计压缩包",
+	"description": "用于批量导出工程和库文件压缩包的工具",
+	"version": "1.1.10",
+	"publisher": "嘉立创EDA",
+	"engines": {
+		"eda": "^2.2.34"
+	},
+	"license": "UNLICENSE",
+	"repository": {
+		"type": "extension-store",
+		"url": ""
+	},
+	"categories": "PCB",
+	"keywords": ["Export", "Project", "Library"],
+	"images": {
+		"logo": "./images/logo.png"
+	},
+	"homepage": "https://pro.lceda.cn",
+	"bugs": "https://lceda.cn/page/feedback?originPage=other",
+	"activationEvents": {},
+	"entry": "./dist/index",
+	"dependentExtensions": {},
+	"headerMenus": {
+		"home": [
+			{
+				"id": "Export Design",
+				"title": "导出设计",
+				"menuItems": [
+					{
+						"id": "Export Project Archive...",
+						"title": "导出工程压缩包...",
+						"registerFn": "exportProjectArchive"
+					},
+					{
+						"id": "Export Device Archive...",
+						"title": "导出器件压缩包...",
+						"registerFn": "exportDeviceArchive"
+					},
+					{
+						"id": "Export Footprint Archive...",
+						"title": "导出封装压缩包...",
+						"registerFn": "exportFootprintArchive"
+					},
+					{
+						"id": "Export Device Archive with LCSC ID...",
+						"title": "导出器件压缩包（根据立创编号）...",
+						"registerFn": "exportDeviceArchiveWithLcscId"
+					},
+					{
+						"id": "About",
+						"title": "关于...",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"blank": [
+			{
+				"id": "Export Design",
+				"title": "导出设计",
+				"menuItems": [
+					{
+						"id": "Export Project Archive...",
+						"title": "导出工程压缩包...",
+						"registerFn": "exportProjectArchive"
+					},
+					{
+						"id": "Export Device Archive...",
+						"title": "导出器件压缩包...",
+						"registerFn": "exportDeviceArchive"
+					},
+					{
+						"id": "Export Footprint Archive...",
+						"title": "导出封装压缩包...",
+						"registerFn": "exportFootprintArchive"
+					},
+					{
+						"id": "Export Device Archive with LCSC ID...",
+						"title": "导出器件压缩包（根据立创编号）...",
+						"registerFn": "exportDeviceArchiveWithLcscId"
+					},
+					{
+						"id": "About",
+						"title": "关于...",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"sch": [
+			{
+				"id": "Export Design",
+				"title": "导出设计",
+				"menuItems": [
+					{
+						"id": "Export Project Archive...",
+						"title": "导出工程压缩包...",
+						"registerFn": "exportProjectArchive"
+					},
+					{
+						"id": "Export Device Archive...",
+						"title": "导出器件压缩包...",
+						"registerFn": "exportDeviceArchive"
+					},
+					{
+						"id": "Export Footprint Archive...",
+						"title": "导出封装压缩包...",
+						"registerFn": "exportFootprintArchive"
+					},
+					{
+						"id": "Export Device Archive with LCSC ID...",
+						"title": "导出器件压缩包（根据立创编号）...",
+						"registerFn": "exportDeviceArchiveWithLcscId"
+					},
+					{
+						"id": "About",
+						"title": "关于...",
+						"registerFn": "about"
+					}
+				]
+			}
+		],
+		"pcb": [
+			{
+				"id": "Export Design",
+				"title": "导出设计",
+				"menuItems": [
+					{
+						"id": "Export Project Archive...",
+						"title": "导出工程压缩包...",
+						"registerFn": "exportProjectArchive"
+					},
+					{
+						"id": "Export Device Archive...",
+						"title": "导出器件压缩包...",
+						"registerFn": "exportDeviceArchive"
+					},
+					{
+						"id": "Export Footprint Archive...",
+						"title": "导出封装压缩包...",
+						"registerFn": "exportFootprintArchive"
+					},
+					{
+						"id": "Export Device Archive with LCSC ID...",
+						"title": "导出器件压缩包（根据立创编号）...",
+						"registerFn": "exportDeviceArchiveWithLcscId"
+					},
+					{
+						"id": "About",
+						"title": "关于...",
+						"registerFn": "about"
+					}
+				]
+			}
+		]
+	}
+}
