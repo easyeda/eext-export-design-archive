@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<!-- 此为AI生成的测试界面，作为导出文件的测试 -->
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>JS 导出 Excel Demo (优化版)</title>
+		<style>
+			/* --- 基础样式重置和页面布局 --- */
+			body {
+				font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 100vh;
+				margin: 0;
+				background-color: #f0f2f5;
+				color: #333;
+			}
+
+			/* --- 主容器样式 --- */
+			.container {
+				text-align: center;
+				padding: 40px;
+				background: white;
+				border-radius: 8px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+				max-width: 600px;
+				width: 90%;
+			}
+
+			h1 {
+				color: #1a1a1a;
+				margin-bottom: 10px;
+			}
+
+			p {
+				color: #666;
+				margin-bottom: 30px;
+			}
+
+			/* --- 按钮样式 --- */
+			button {
+				padding: 12px 24px;
+				font-size: 16px;
+				font-weight: bold;
+				color: white;
+				background-color: #007bff;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				transition:
+					background-color 0.3s,
+					transform 0.1s;
+			}
+
+			button:hover {
+				background-color: #0056b3;
+			}
+
+			button:active {
+				transform: scale(0.98);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>JS 导出 Excel Demo</h1>
+			<p>点击下方按钮，将数据导出为 Excel 文件。</p>
+			<button id="export-btn">导出 Excel</button>
+		</div>
+		<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+		<script>
+			// 使用 DOMContentLoaded 事件确保在执行脚本前，HTML 文档已完全加载和解析
+			document.addEventListener('DOMContentLoaded', () => {
+				// 获取页面中的导出按钮元素
+				const exportBtn = document.getElementById('export-btn');
+
+				// --- 配置项 ---
+				// 将数据源和文件名抽离，方便修改
+				const fileName = '用户信息表.xlsx';
+				const sheetName = '用户数据';
+
+				// 准备要导出的数据（一个二维数组）
+				// 第一行通常作为表头
+				const dataSource = [
+					['姓名', '年龄', '城市', '职业'],
+					['张三', 28, '北京', '工程师'],
+					['李四', 32, '上海', '设计师'],
+					['王五', 24, '广州', '产品经理'],
+					['赵六', 45, '深圳', 'CEO'],
+				];
+
+				// --- 核心导出函数 ---
+				function exportExcel(data, sheetName, fileName) {
+					try {
+						// 1. 创建一个新的工作簿
+						const workbook = XLSX.utils.book_new();
+
+						// 2. 将二维数组数据转换为一个工作表对象
+						// aoa_to_sheet: Array of Arrays to Sheet
+						const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+						// 3. 将工作表添加到工作簿中
+						// book_append_sheet: 将工作表附加到工作簿
+						XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+						// 4. 生成并下载 Excel 文件
+						// writeFile: 将工作簿写入文件并触发浏览器下载
+						XLSX.writeFile(workbook, fileName);
+
+						// 5. 成功提示（可选）
+						alert('Excel 文件已成功导出！');
+					} catch (error) {
+						// 6. 错误处理
+						console.error('导出 Excel 时发生错误:', error);
+						alert('导出失败，请检查控制台获取详细信息。');
+					}
+				}
+
+				// 为按钮绑定点击事件
+				exportBtn.addEventListener('click', () => {
+					// 调用导出函数，并传入配置好的数据
+					exportExcel(dataSource, sheetName, fileName);
+				});
+			});
+		</script>
+	</body>
+</html>

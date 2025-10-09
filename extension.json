@@ -50,6 +50,11 @@
 						"registerFn": "exportDeviceArchiveWithLcscId"
 					},
 					{
+						"id": "Export Device List...",
+						"title": "导出器件清单...",
+						"registerFn": "exportDeviceList"
+					},
+					{
 						"id": "About",
 						"title": "关于...",
 						"registerFn": "about"

@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-Hans">
+	<head>
+		<title>导出器件清单</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<!-- 1. 引入 JSZip 库 解压zip并查找文件用 如果后续更新出直接获取指定内容的api则可以取消此库 -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+		<!-- 用来解析获取到的zip文件内的json，并生成xlsx文件 -->
+		<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" crossorigin="anonymous">
+		</script>
+
+	</head>
+	<body>
+		<table>
+			<tbody>
+				<tr>
+					<td align="right"><span style="font-size: 14px">导出库所属：</span></td>
+					<td>
+						<select id="librarySelect" style="max-width: 160px">
+							<option value="">---</option>
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+		<input id="exportButton" value="导出" type="button" />&nbsp;
+		<span id="messageBar" style="font-size: 11px">请设置导出参数</span>
+		<script type="text/javascript">
+			let deviceJsonObj = ""; //存储解析后的对象
+
+			// 动态加载库列表到下拉框
+			document.getElementById('librarySelect').onclick = async function() {
+				// 如果选项已经加载过，则不再重复加载
+				if (document.getElementById('librarySelect').options.length > 1) {
+					return;
+				}
+
+				const libraries = [];
+				// 获取个人库UUID
+				let personalLibraryUuid = await eda.lib_LibrariesList.getPersonalLibraryUuid();
+				if (personalLibraryUuid && personalLibraryUuid.uuid) {
+					personalLibraryUuid = personalLibraryUuid.uuid;
+				}
+				personalLibraryUuid && libraries.push({
+					name: '个人',
+					uuid: personalLibraryUuid
+				});
+				// 获取工程库UUID
+				const projectLibraryUuid = await eda.lib_LibrariesList.getProjectLibraryUuid();
+				projectLibraryUuid && libraries.push({
+					name: '工程',
+					uuid: projectLibraryUuid
+				});
+				// 获取收藏库UUID
+				const favoriteLibraryUuid = await eda.lib_LibrariesList.getFavoriteLibraryUuid();
+				favoriteLibraryUuid && libraries.push({
+					name: '收藏',
+					uuid: favoriteLibraryUuid
+				});
+				// 获取所有其他库
+				const librariesFetched = await eda.lib_LibrariesList.getAllLibrariesList();
+				libraries.push(...librariesFetched);
+
+				// 将获取到的库添加到下拉框
+				for (const library of libraries) {
+					const optionElement = document.createElement('option');
+					optionElement.innerHTML = library.name;
+					optionElement.value = library.uuid;
+					document.getElementById('librarySelect').appendChild(optionElement);
+				}
+			};
+
+			// 导出按钮点击事件
+			document.getElementById('exportButton').onclick = async function() {
+				// 禁用按钮，防止重复点击
+				document.getElementById('exportButton').disabled = true;
+				document.getElementById('messageBar').innerHTML = '开始导出';
+
+				// 如果是客户端且离线模式，打开底部面板
+				if (eda.sys_Environment.isClient() && eda.sys_Environment.isOfflineMode()) {
+					eda.sys_PanelControl.openBottomPanel('library');
+				}
+
+				const libraryUuid = document.getElementById('librarySelect').value;
+
+				// 验证是否选择了库
+				if (!libraryUuid) {
+					document.getElementById('messageBar').innerHTML = '未选择导出的库';
+					document.getElementById('exportButton').disabled = false;
+					return;
+				}
+
+				// 设置一个较大的itemsOfPage值，以一次性获取所有器件
+				const itemsOfPage = 10000;
+				let page = 1;
+
+				try {
+					document.getElementById('messageBar').innerHTML = '正在获取器件列表...';
+					const devices = await eda.lib_Device.search('', libraryUuid, undefined, 2, itemsOfPage, page);
+
+					if (!devices || devices.length === 0) {
+						document.getElementById('messageBar').innerHTML = '该库中没有器件可供导出';
+						document.getElementById('exportButton').disabled = false;
+						return;
+					}
+					document.getElementById('messageBar').innerHTML = '正在解析器件数据...';
+					const deviceUuids = devices.map(device => device.uuid);
+					const deviceFile = await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, libraryUuid);
+
+					// 创建一个 FileReader 来读取文件的二进制数据
+					const reader = new FileReader();
+					// 定义 FileReader 加载完成后的回调函数
+					reader.onload = async function(event) {
+						try {
+							// 从 event.target.result 获取文件内容 (ArrayBuffer)
+							const zipData = event.target.result;
+							// 使用 JSZip 加载数据
+							const zip = await JSZip.loadAsync(zipData);
+
+							// 检查是否存在 device.json 文件并读取内容
+							if (zip.files['device.json']) {
+								const deviceJsonContent = await zip.files['device.json'].async('text');
+								deviceJsonObj = JSON.parse(deviceJsonContent);
+
+								// --- 新增：准备导出数据 ---
+								document.getElementById('messageBar').innerHTML = '正在准备导出数据...';
+
+								// 定义表头映射，方便后续修改和维护
+								const headerMapping = {
+									'Device': 'display_title',
+									'Symbol': 'display_title',
+									'Footprint': 'attributes["Supplier Footprint"]',
+									'3D Model': 'attributes["3D Model Title"]',
+									'Primary Category': 'symbol.tags.parent_tag["name"]',
+									'Secondary Category': 'symbol.tags.child_tag["name"]',
+									'Add into BOM': 'attributes["Add into BOM"]',
+									'Convert to PCB': 'attributes["Convert to PCB"]',
+									'Designator': 'attributes["Designator"]',
+									'Name': 'attributes["Name"]',
+									'Manufacturer': 'attributes["Manufacturer"]',
+									'Manufacturer Part': 'attributes["Manufacturer Part"]',
+									'Supplier': 'attributes["Supplier"]',
+									'Supplier Part': 'attributes["Supplier Part"]',
+									'Part Number': 'attributes["Part Number"]',
+									'Value': 'attributes["Value"]',
+									'Datasheet': 'attributes["Datasheet"]',
+									'Description': 'attributes["Description"]',
+									'CustomAttr1': 'attributes["CustomAttr1"]',
+									'CustomAttr2': 'attributes["CustomAttr2"]'
+								};
+
+								const exportData = [];
+								const uuids = Object.keys(deviceJsonObj.devices);
+
+								for (const id of uuids) {
+									const device = deviceJsonObj.devices[id];
+									const rowData = {};
+
+									// 使用映射关系安全地获取数据
+									for (const header in headerMapping) {
+										const path = headerMapping[header];
+										rowData[header] = getNestedValue(device, path);
+									}
+									exportData.push(rowData);
+								}
+
+								// --- 新增：生成并下载 Excel 文件 ---
+								document.getElementById('messageBar').innerHTML = '正在生成Excel文件...';
+
+								// 创建工作表
+								const ws = XLSX.utils.json_to_sheet(exportData);
+								// 创建工作簿
+								const wb = XLSX.utils.book_new();
+								// 将工作表添加到工作簿
+								XLSX.utils.book_append_sheet(wb, ws, "器件清单");
+
+								// 获取库名称用于文件名
+								const libraryName = document.getElementById('librarySelect').options[document
+									.getElementById('librarySelect').selectedIndex].text;
+								const fileName =
+									`${libraryName}_器件清单_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+								// 下载文件
+								XLSX.writeFile(wb, fileName);
+
+								document.getElementById('messageBar').innerHTML = '导出已完成';
+
+							} else {
+								console.log('ZIP文件中不存在 device.json 文件');
+								document.getElementById('messageBar').innerHTML = '解析失败：未找到 device.json';
+							}
+						} catch (error) {
+							console.error('解析或导出过程中出错:', error);
+							document.getElementById('messageBar').innerHTML = '导出失败，请查看控制台';
+						}
+					};
+					// 定义读取错误时的回调函数
+					reader.onerror = function() {
+						console.error('读取文件时发生错误');
+						document.getElementById('messageBar').innerHTML = '读取文件失败';
+					};
+
+					// 以 ArrayBuffer 格式开始读取 File 对象
+					reader.readAsArrayBuffer(deviceFile);
+
+				} catch (error) {
+					console.error("导出过程中发生错误:", error);
+					document.getElementById('messageBar').innerHTML = '导出失败，请查看控制台';
+				} finally {
+					// 无论成功与否，最后都重新启用按钮
+					document.getElementById('exportButton').disabled = false;
+				}
+			};
+
+			/**
+			 * 辅助函数：根据字符串路径安全地获取嵌套对象的值
+			 * @param {object} obj - 源对象
+			 * @param {string} path - 属性路径，例如 'a.b["c"]'
+			 * @returns {*} 属性值或空字符串
+			 */
+			function getNestedValue(obj, path) {
+				try {
+					// 使用正则表达式分割路径，处理点号和方括号
+					const properties = path.match(/(\w+)|\["([^"]+)"\]/g);
+					if (!properties) return '';
+
+					let current = obj;
+					for (const prop of properties) {
+						// 提取属性名
+						const key = prop.replace(/\["|"\]/g, '');
+						if (current === null || current === undefined) {
+							return ''; // 如果中间路径为空，则返回空字符串
+						}
+						current = current[key];
+					}
+					return current === null || current === undefined ? '' : current;
+				} catch (e) {
+					// 如果路径无效，返回空字符串
+					return '';
+				}
+			}
+		</script>
+	</body>
+</html>
