@@ -126,11 +126,10 @@
 								const deviceJsonContent = await zip.files['device.json'].async('text');
 								deviceJsonObj = JSON.parse(deviceJsonContent);
 
-								// --- 新增：准备导出数据 ---
 								document.getElementById('messageBar').innerHTML = '正在准备导出数据...';
 
-								// 定义表头映射，方便后续修改和维护
-								const headerMapping = {
+								// 定义固定表头映射 
+								const fixedHeaderMapping = {
 									'Device': 'display_title',
 									'Symbol': 'display_title',
 									'Footprint': 'attributes["Supplier Footprint"]',
@@ -153,22 +152,49 @@
 									'CustomAttr2': 'attributes["CustomAttr2"]'
 								};
 
-								const exportData = [];
+								// 扫描所有器件，收集额外的属性 
+								document.getElementById('messageBar').innerHTML = '正在扫描所有自定义属性...';
+								const allExtraAttributeKeys = new Set();
 								const uuids = Object.keys(deviceJsonObj.devices);
 
 								for (const id of uuids) {
 									const device = deviceJsonObj.devices[id];
+									if (device && device.attributes) {
+										for (const key in device.attributes) {
+											// 只添加不在固定列表中的属性
+											if (!fixedHeaderMapping[`attributes["${key}"]`]) {
+												allExtraAttributeKeys.add(key);
+											}
+										}
+									}
+								}
+
+								//  合并固定表头和额外属性，形成最终的表头映射 
+								const finalHeaderMapping = {
+									...fixedHeaderMapping
+								};
+								// 将Set转换为数组并排序，以保证每次导出的列顺序一致
+								const sortedExtraKeys = Array.from(allExtraAttributeKeys).sort();
+								for (const key of sortedExtraKeys) {
+									// 使用属性名本身作为表头
+									finalHeaderMapping[key] = `attributes["${key}"]`;
+								}
+
+								// 根据最终的表头映射生成导出数据 
+								const exportData = [];
+								for (const id of uuids) {
+									const device = deviceJsonObj.devices[id];
 									const rowData = {};
 
-									// 使用映射关系安全地获取数据
-									for (const header in headerMapping) {
-										const path = headerMapping[header];
+									// 使用最终的映射关系安全地获取数据
+									for (const header in finalHeaderMapping) {
+										const path = finalHeaderMapping[header];
 										rowData[header] = getNestedValue(device, path);
 									}
 									exportData.push(rowData);
 								}
 
-								// --- 新增：生成并下载 Excel 文件 ---
+								// 生成并下载 Excel 文件 
 								document.getElementById('messageBar').innerHTML = '正在生成Excel文件...';
 
 								// 创建工作表
