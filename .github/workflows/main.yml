@@ -23,16 +23,14 @@ jobs:
           cache: 'npm'
 
       - name: Install specific npm version
-        run: npm install -g npm@9.8.1
-
-      - name: Clean npm cache
-        run: npm cache clean --force
+        run: npm install -g npm@10
+        
+      - name: Use official npm registry
+        run: npm config set registry https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: |
-          rm -rf node_modules
-          npm ci
-
+        run: npm ci
+        
       - name: Build project
         run: npm run build
 
