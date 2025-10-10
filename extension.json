@@ -16,7 +16,7 @@
 	"categories": "PCB",
 	"keywords": ["Export", "Project", "Library"],
 	"images": {
-		"logo": "./images/logo.png"
+		"logo": "./images/logo.jpg"
 	},
 	"homepage": "https://github.com/easyeda/eext-export-design-archive",
 	"bugs": "https://github.com/easyeda/eext-export-design-archive/issues",
