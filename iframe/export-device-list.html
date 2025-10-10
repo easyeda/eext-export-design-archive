@@ -11,7 +11,6 @@
 		<!-- <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" crossorigin="anonymous">
 		</script> -->
 		<script src="/iframe/js/xlsx.full.min.js"></script>
-
 	</head>
 	<body>
 		<table>
@@ -30,10 +29,10 @@
 		<input id="exportButton" value="导出" type="button" />&nbsp;
 		<span id="messageBar" style="font-size: 11px">请设置导出参数</span>
 		<script type="text/javascript">
-			let deviceJsonObj = ""; //存储解析后的对象
+			let deviceJsonObj = ''; //存储解析后的对象
 
 			// 动态加载库列表到下拉框
-			document.getElementById('librarySelect').onclick = async function() {
+			document.getElementById('librarySelect').onclick = async function () {
 				// 如果选项已经加载过，则不再重复加载
 				if (document.getElementById('librarySelect').options.length > 1) {
 					return;
@@ -45,22 +44,25 @@
 				if (personalLibraryUuid && personalLibraryUuid.uuid) {
 					personalLibraryUuid = personalLibraryUuid.uuid;
 				}
-				personalLibraryUuid && libraries.push({
-					name: '个人',
-					uuid: personalLibraryUuid
-				});
+				personalLibraryUuid &&
+					libraries.push({
+						name: '个人',
+						uuid: personalLibraryUuid,
+					});
 				// 获取工程库UUID
 				const projectLibraryUuid = await eda.lib_LibrariesList.getProjectLibraryUuid();
-				projectLibraryUuid && libraries.push({
-					name: '工程',
-					uuid: projectLibraryUuid
-				});
+				projectLibraryUuid &&
+					libraries.push({
+						name: '工程',
+						uuid: projectLibraryUuid,
+					});
 				// 获取收藏库UUID
 				const favoriteLibraryUuid = await eda.lib_LibrariesList.getFavoriteLibraryUuid();
-				favoriteLibraryUuid && libraries.push({
-					name: '收藏',
-					uuid: favoriteLibraryUuid
-				});
+				favoriteLibraryUuid &&
+					libraries.push({
+						name: '收藏',
+						uuid: favoriteLibraryUuid,
+					});
 				// 获取所有其他库
 				const librariesFetched = await eda.lib_LibrariesList.getAllLibrariesList();
 				libraries.push(...librariesFetched);
@@ -75,7 +77,7 @@
 			};
 
 			// 导出按钮点击事件
-			document.getElementById('exportButton').onclick = async function() {
+			document.getElementById('exportButton').onclick = async function () {
 				// 禁用按钮，防止重复点击
 				document.getElementById('exportButton').disabled = true;
 				document.getElementById('messageBar').innerHTML = '开始导出';
@@ -108,13 +110,13 @@
 						return;
 					}
 					document.getElementById('messageBar').innerHTML = '正在解析器件数据...';
-					const deviceUuids = devices.map(device => device.uuid);
+					const deviceUuids = devices.map((device) => device.uuid);
 					const deviceFile = await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, libraryUuid);
 
 					// 创建一个 FileReader 来读取文件的二进制数据
 					const reader = new FileReader();
 					// 定义 FileReader 加载完成后的回调函数
-					reader.onload = async function(event) {
+					reader.onload = async function (event) {
 						try {
 							// 从 event.target.result 获取文件内容 (ArrayBuffer)
 							const zipData = event.target.result;
@@ -128,7 +130,7 @@
 
 								document.getElementById('messageBar').innerHTML = '正在准备导出数据...';
 
-								// 定义固定表头映射 
+								// 定义固定表头映射
 								const fixedHeaderMapping = {
 									'Device': 'display_title',
 									'Symbol': 'display_title',
@@ -148,11 +150,9 @@
 									'Value': 'attributes["Value"]',
 									'Datasheet': 'attributes["Datasheet"]',
 									'Description': 'attributes["Description"]',
-									'CustomAttr1': 'attributes["CustomAttr1"]',
-									'CustomAttr2': 'attributes["CustomAttr2"]'
 								};
 
-								// 扫描所有器件，收集额外的属性 
+								// 扫描所有器件，收集额外的属性
 								document.getElementById('messageBar').innerHTML = '正在扫描所有自定义属性...';
 								const allExtraAttributeKeys = new Set();
 								const uuids = Object.keys(deviceJsonObj.devices);
@@ -169,9 +169,9 @@
 									}
 								}
 
-								//  合并固定表头和额外属性，形成最终的表头映射 
+								//  合并固定表头和额外属性，形成最终的表头映射
 								const finalHeaderMapping = {
-									...fixedHeaderMapping
+									...fixedHeaderMapping,
 								};
 								// 将Set转换为数组并排序，以保证每次导出的列顺序一致
 								const sortedExtraKeys = Array.from(allExtraAttributeKeys).sort();
@@ -180,7 +180,7 @@
 									finalHeaderMapping[key] = `attributes["${key}"]`;
 								}
 
-								// 根据最终的表头映射生成导出数据 
+								// 根据最终的表头映射生成导出数据
 								const exportData = [];
 								for (const id of uuids) {
 									const device = deviceJsonObj.devices[id];
@@ -194,7 +194,7 @@
 									exportData.push(rowData);
 								}
 
-								// 生成并下载 Excel 文件 
+								// 生成并下载 Excel 文件
 								document.getElementById('messageBar').innerHTML = '正在生成Excel文件...';
 
 								// 创建工作表
@@ -202,19 +202,17 @@
 								// 创建工作簿
 								const wb = XLSX.utils.book_new();
 								// 将工作表添加到工作簿
-								XLSX.utils.book_append_sheet(wb, ws, "器件清单");
+								XLSX.utils.book_append_sheet(wb, ws, '器件清单');
 
 								// 获取库名称用于文件名
-								const libraryName = document.getElementById('librarySelect').options[document
-									.getElementById('librarySelect').selectedIndex].text;
-								const fileName =
-									`${libraryName}_器件清单_${new Date().toISOString().slice(0, 10)}.xlsx`;
+								const libraryName =
+									document.getElementById('librarySelect').options[document.getElementById('librarySelect').selectedIndex].text;
+								const fileName = `${libraryName}_器件清单_${new Date().toISOString().slice(0, 10)}.xlsx`;
 
 								// 下载文件
 								XLSX.writeFile(wb, fileName);
 
 								document.getElementById('messageBar').innerHTML = '导出已完成';
-
 							} else {
 								console.log('ZIP文件中不存在 device.json 文件');
 								document.getElementById('messageBar').innerHTML = '解析失败：未找到 device.json';
@@ -225,16 +223,15 @@
 						}
 					};
 					// 定义读取错误时的回调函数
-					reader.onerror = function() {
+					reader.onerror = function () {
 						console.error('读取文件时发生错误');
 						document.getElementById('messageBar').innerHTML = '读取文件失败';
 					};
 
 					// 以 ArrayBuffer 格式开始读取 File 对象
 					reader.readAsArrayBuffer(deviceFile);
-
 				} catch (error) {
-					console.error("导出过程中发生错误:", error);
+					console.error('导出过程中发生错误:', error);
 					document.getElementById('messageBar').innerHTML = '导出失败，请查看控制台';
 				} finally {
 					// 无论成功与否，最后都重新启用按钮
