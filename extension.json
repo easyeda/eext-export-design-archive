@@ -3,7 +3,7 @@
 	"uuid": "oxvueccubpdwc6dzzexy4dumxyfueu26",
 	"displayName": "导出设计压缩包",
 	"description": "用于批量导出工程和库文件压缩包的工具",
-	"version": "1.2.0",
+	"version": "1.10.1",
 	"publisher": "嘉立创EDA",
 	"engines": {
 		"eda": "^2.2.34"

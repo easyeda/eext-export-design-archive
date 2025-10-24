@@ -84,6 +84,16 @@
 					eda.sys_PanelControl.openBottomPanel('library');
 				}
 
+				// 获取编辑器版本并确定文件格式
+				const editorVersion = await eda.sys_Environment.getEditorCurrentVersion();
+				console.log('Editor version:', editorVersion);
+
+				// 版本比较
+				const versionParts = editorVersion.split('.').map(Number);
+				const isVersion3OrAbove = versionParts[0] >= 3;
+				const fileFormat = isVersion3OrAbove ? 'elibz2' : 'elibz';
+				const fileExtension = isVersion3OrAbove ? '.elibz2' : '.elibz';
+
 				const libraryUuid = document.getElementById('librarySelect').value;
 				const itemsOfPage = Number(document.getElementById('itemsOfPage').value);
 				let page = Number(document.getElementById('page').value);
@@ -142,8 +152,8 @@
 						for (const device of devices) {
 							deviceUuids.push(device.uuid);
 						}
-						const deviceFile = await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, libraryUuid);
-						await eda.sys_FileSystem.saveFile(deviceFile, deviceFile.name.split('.')[0] + '_' + page.toString() + '.elibz');
+						const deviceFile = await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, libraryUuid, fileFormat);
+						await eda.sys_FileSystem.saveFile(deviceFile, deviceFile.name.split('.')[0] + '_' + page.toString() + fileExtension);
 						// [单页器件导出结束]
 						if (devices.length < itemsOfPage) {
 							// 最后一页结束循环
@@ -197,9 +207,9 @@
 					for (const device of devices) {
 						deviceUuids.push(device.uuid);
 					}
-					const deviceFile = await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, libraryUuid);
-					let deviceFileName = deviceFile?.name || 'ProLib.elibz';
-					await eda.sys_FileSystem.saveFile(deviceFile, deviceFileName.split('.')[0] + '_' + page.toString() + '.elibz');
+					const deviceFile = await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, libraryUuid, fileFormat);
+					let deviceFileName = deviceFile?.name || 'ProLib' + fileExtension;
+					await eda.sys_FileSystem.saveFile(deviceFile, deviceFileName.split('.')[0] + '_' + page.toString() + fileExtension);
 					// [单页器件导出结束]
 				}
 				document.getElementById('messageBar').innerHTML = '导出已完成';

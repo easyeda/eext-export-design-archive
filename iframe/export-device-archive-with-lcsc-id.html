@@ -6,7 +6,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	</head>
 	<body>
-		<p style="font-size: 11px">导出的 <code>.elibz</code> 文件，可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
+		<p style="font-size: 11px">导出的文件可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
 		<textarea
 			id="lcscId"
 			rows="5"
@@ -26,6 +26,17 @@
 				document.getElementById('exportButton').disabled = true;
 				document.getElementById('lcscId').readonly = true;
 				document.getElementById('messageBar').innerHTML = '开始导出';
+
+				// 获取编辑器版本并确定文件格式
+				const editorVersion = await eda.sys_Environment.getEditorCurrentVersion();
+				console.log('Editor version:', editorVersion);
+
+				// 版本比较：3.0.0.0以上使用elibz2，否则使用elibz
+				const versionParts = editorVersion.split('.').map(Number);
+				const isVersion3OrAbove = versionParts[0] >= 3;
+				const fileFormat = isVersion3OrAbove ? 'elibz2' : 'elibz';
+				const fileExtension = isVersion3OrAbove ? '.elibz2' : '.elibz';
+
 				const systemLibraryUuid = await eda.lib_LibrariesList.getSystemLibraryUuid();
 				const lcscIdString = await document.getElementById('lcscId').value;
 				if (!systemLibraryUuid) {
@@ -84,7 +95,9 @@
 
 				if (deviceUuids.length >= 1) {
 					document.getElementById('messageBar').innerHTML = '正在导出 ' + deviceUuids.length.toString() + ' 个器件';
-					await eda.sys_FileSystem.saveFile(await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, systemLibraryUuid));
+					await eda.sys_FileSystem.saveFile(
+						await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, systemLibraryUuid, fileFormat),
+					);
 					if (unmatchedLcscIdList.length === 0) {
 						document.getElementById('messageBar').innerHTML = '导出已完成';
 						eda.sys_ToastMessage.showMessage('导出已完成，成功导出 ' + deviceUuids.length.toString() + ' 个器件', 3);
