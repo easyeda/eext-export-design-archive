@@ -39,10 +39,9 @@
 				const StarLibrary = await eda.lib_LibrariesList.getFavoriteLibraryUuid();
 				const PersonLibrary = await eda.lib_LibrariesList.getPersonalLibraryUuid();
 				const ProjectLibrary = await eda.lib_LibrariesList.getProjectLibraryUuid();
-				const SystemLibrary = await eda.lib_LibrariesList.getSystemLibraryUuid();
+				//	const SystemLibrary = await eda.lib_LibrariesList.getSystemLibraryUuid();
 
 				const specialLibraries = [
-					{ uuid: SystemLibrary, name: '系统' },
 					{ uuid: PersonLibrary, name: '个人' },
 					{ uuid: ProjectLibrary, name: '工程' },
 					{ uuid: StarLibrary, name: '收藏' },
