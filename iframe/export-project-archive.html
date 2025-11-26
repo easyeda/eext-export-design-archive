@@ -41,7 +41,7 @@
 				// 版本比较：3.0.0.0以上使用epro2，否则使用epro
 				const versionParts = editorVersion.split('.').map(Number);
 				const isVersion3OrAbove = versionParts[0] >= 3;
-				const fileFormat = isVersion3OrAbove ? 'epro2' : 'epro';
+				const fileFormat = isVersion3OrAbove ? '.epro2' : '.epro';
 
 				const projectUuids = await eda.dmt_Project.getAllProjectsUuid(teamUuid);
 				// 当前没有办法使用 request 请求权限，只能让用户手动赋予权限，或在批量下载的时候触发浏览器的权限弹窗

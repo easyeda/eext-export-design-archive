@@ -34,7 +34,7 @@
 				// 版本比较：3.0.0.0以上使用elibz2，否则使用elibz
 				const versionParts = editorVersion.split('.').map(Number);
 				const isVersion3OrAbove = versionParts[0] >= 3;
-				const fileFormat = isVersion3OrAbove ? 'elibz2' : 'elibz';
+				const fileFormat = isVersion3OrAbove ? '.elibz2' : '.elibz';
 				const fileExtension = isVersion3OrAbove ? '.elibz2' : '.elibz';
 
 				const systemLibraryUuid = await eda.lib_LibrariesList.getSystemLibraryUuid();

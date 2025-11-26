@@ -7,7 +7,10 @@
 	</head>
 	<body>
 		<p style="font-size: 11px">如果在浏览器使用该功能，请在下载开始后在地址栏允许连续多次自动下载文件。</p>
-		<p style="font-size: 11px">导出的 <code>.elibz</code> 文件，可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
+		<p style="font-size: 11px">
+			导出的文件格式会根据EDA版本自动选择：版本 ≥ 3.0.0.0 导出 <code>.elibz2</code>，版本 < 3.0.0.0 导出 <code>.elibz</code>。文件可在 编辑器 -
+			文件 - 导入 - 嘉立创EDA专业版 导入。
+		</p>
 		<table>
 			<tbody>
 				<tr>
@@ -94,6 +97,13 @@
 					return;
 				}
 
+				// 版本检测：确定封装文件格式与扩展名
+				const editorVersion = await eda.sys_Environment.getEditorCurrentVersion();
+				const versionParts = editorVersion.split('.').map(Number);
+				const isVersion3OrAbove = versionParts[0] >= 3;
+				const fileFormat = isVersion3OrAbove ? '.elibz2' : '.elibz';
+				const fileExtension = isVersion3OrAbove ? '.elibz2' : '.elibz';
+
 				if (exportAll) {
 					page = 0;
 					while (true) {
@@ -142,8 +152,8 @@
 						for (const footprint of footprints) {
 							footprintUuids.push(footprint.uuid);
 						}
-						const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(footprintUuids, libraryUuid);
-						await eda.sys_FileSystem.saveFile(footprintFile, footprintFile.name.split('.')[0] + '_' + page.toString() + '.elibz');
+						const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(footprintUuids, libraryUuid, fileFormat);
+						await eda.sys_FileSystem.saveFile(footprintFile, footprintFile.name.split('.')[0] + '_' + page.toString() + fileExtension);
 						// [单页封装导出结束]
 						if (footprints.length < itemsOfPage) {
 							// 最后一页结束循环
@@ -197,9 +207,9 @@
 					for (const footprint of footprints) {
 						footprintUuids.push(footprint.uuid);
 					}
-					const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(footprintUuids, libraryUuid);
-					let footprintFileName = footprintFile?.name || 'ProLib.elibz';
-					await eda.sys_FileSystem.saveFile(footprintFile, footprintFileName.split('.')[0] + '_' + page.toString() + '.elibz');
+					const footprintFile = await eda.sys_FileManager.getFootprintFileByFootprintUuid(footprintUuids, libraryUuid, fileFormat);
+					let footprintFileName = footprintFile?.name || 'ProLib' + fileExtension;
+					await eda.sys_FileSystem.saveFile(footprintFile, footprintFileName.split('.')[0] + '_' + page.toString() + fileExtension);
 					// [单页封装导出结束]
 				}
 				document.getElementById('messageBar').innerHTML = '导出已完成';
