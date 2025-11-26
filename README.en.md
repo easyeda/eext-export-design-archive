@@ -1,13 +1,46 @@
-# Export design archive file
-The plugin supports
-1. After the plug-in is installed, you can choose an owner or project path (offline and semi-offline).
-2. Batch the projects under the owner or project path and export the epro files to the local one by one
-3. The project does not need to be opened for export. Please refer to the online version to download the professional version of the project in batches in the project area.
-Export Design Export Design
--- Export Project Archive... Export Project Archive...
--- Export Device Archive... Export Device Archive...
--- Export Device Archive (BaseLCSC Part No.)..
+# Export Design Archive File
 
-Click on the pop-up window, select an owner (project path, library path), and then save the project or device library under that owner as a local epro or elibz file in batches
+## Plugin Introduction
 
-**Note**: This batch export plug-in is convenient for offline client side export. If it is an online editor, it is recommended to batch export projects in the workspace, which is faster.
+This is a batch export plugin specifically designed for JLCEDA, supporting the bulk export of design resources such as project files, component libraries, and package libraries. The extension is particularly suitable for offline client users, enabling convenient export of design resources as local files for backup or migration.
+
+## Main Features
+
+The plugin provides the following export functions:
+
+### 🔧 Export Project Archive
+
+-   Export all projects under the specified owner in bulk
+-   Supports version-adaptive formats
+-   Export without opening the project
+    ![img.png](images/img.png)
+
+### 📦 Export Device Archive
+
+-   Batch export devices from the library
+-   Supports version-adaptive format
+-   Supports paginated export, with the option to set the number of records exported per batch
+    ![img_1.png](images/img_1.png)
+
+### 📋 Export Device List
+
+-   Export the detailed list of the device library
+-   Supports exporting in Excel format
+-   After editing the list, you can batch refresh device parameters using the built-in batch component creation feature in the editor
+    ![img_2.png](images/img_2.png)
+
+### 🔌 Export Footprint Archive
+
+-   Batch export of encapsulated library resources
+-   Supports exporting by library category
+-   The number of exports per session can be set (maximum 2000)
+-   Supports both paginated export and full export modes
+-   Facilitates backup and sharing of encapsulated libraries
+    ![img_3.png](images/img_3.png)
+
+### 🏷️ Export Device Archive (Based on LCSC Part No.)
+
+-   Export components based on LCSC Mall part numbers
+-   Supports version-adaptive format
+-   Facilitates correspondence with the LCSC component library
+    ![img_4.png](images/img_4.png)

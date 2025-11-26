@@ -12,18 +12,22 @@
 
 -   批量导出指定所有者下的所有工程
 -   支持版本自适应格式
--   无需打开工程即可导出
+-   无需打开工程即可导出  
+    ![img.png](images/img.png)
 
 ### 📦 导出器件压缩包 (Export Device Archive)
 
 -   批量导出器件库中的器件
 -   支持版本自适应格式
--   支持分页导出，可设置每次导出数量
+-   支持分页导出，可设置每次导出数量  
+    ![img_1.png](images/img_1.png)
 
 ### 📋 导出器件清单 (Export Device List)
 
 -   导出器件库的详细清单
 -   支持Excel格式导出
+-   编辑清单后可通过编辑器自带的批量创建元件功能进行批量刷新器件参数  
+    ![img_2.png](images/img_2.png)
 
 ### 🔌 导出封装压缩包 (Export Footprint Archive)
 
@@ -31,10 +35,12 @@
 -   支持按库所属分类导出
 -   可设置每次导出数量（最多2000个）
 -   支持分页导出和全量导出两种模式
--   便于封装库的备份和共享
+-   便于封装库的备份和共享  
+    ![img_3.png](images/img_3.png)
 
 ### 🏷️ 导出器件压缩包(根据立创编号) (Export Device Archive Based on LCSC Part No.)
 
 -   基于立创商城编号导出器件
 -   支持版本自适应格式
--   便于与立创商城器件库对应
+-   便于与立创商城器件库对应  
+    ![img_4.png](images/img_4.png)
