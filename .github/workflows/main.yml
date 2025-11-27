@@ -76,7 +76,7 @@ jobs:
             flag {print}
           ' CHANGELOG.md)
       
-          NOTES="$NOTES\n\n---\n由GitHub Actions自动构建并发布\nBuilt and released automatically by GitHub Actions\n\n也可前往[嘉立创EDA扩展广场](https://extensions.oshwhub.com/item/oshwhub/${EEXTNAME})下载\nAlso available at [JLCEDA Extension Plaza](https://extensions.oshwhub.com/item/oshwhub/${EEXTNAME})"
+          NOTES="$NOTES\n\n---\n由GitHub Actions自动构建并发布\nBuilt and released automatically by GitHub Actions\n\n也可前往[嘉立创EDA扩展广场](https://ext.lceda.cn/item/oshwhub/${EEXTNAME})下载\nAlso available at [JLCEDA Extension Plaza](https://extensions.oshwhub.com/item/oshwhub/${EEXTNAME})"
       
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
           echo -e "$NOTES" >> $GITHUB_ENV

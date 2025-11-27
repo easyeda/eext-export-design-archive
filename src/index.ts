@@ -25,7 +25,7 @@ export function activate(status?: TActivateStatus, arg?: string): void {}
  * 导出工程压缩包
  */
 export async function exportProjectArchive(): Promise<void> {
-	eda.sys_IFrame.openIFrame('/iframe/export-project-archive.html', 350, 195);
+	eda.sys_IFrame.openIFrame('/iframe/export-project-archive.html', 350, 180);
 }
 
 /**
@@ -38,21 +38,21 @@ export async function exportDeviceArchive(): Promise<void> {
  * 导出封装压缩包
  */
 export async function exportFootprintArchive(): Promise<void> {
-	eda.sys_IFrame.openIFrame('/iframe/export-footprint-archive.html', 350, 280);
+	eda.sys_IFrame.openIFrame('/iframe/export-footprint-archive.html', 350, 300);
 }
 
 /**
  * 导出器件压缩包（根据立创编号）
  */
 export async function exportDeviceArchiveWithLcscId(): Promise<void> {
-	eda.sys_IFrame.openIFrame('/iframe/export-device-archive-with-lcsc-id.html', 350, 196);
+	eda.sys_IFrame.openIFrame('/iframe/export-device-archive-with-lcsc-id.html', 350, 170);
 }
 
 /**
  * 导出器件清单
  */
 export async function exportDeviceList(): Promise<void> {
-	eda.sys_IFrame.openIFrame('/iframe/export-device-list.html', 350, 180);
+	eda.sys_IFrame.openIFrame('/iframe/export-device-list.html', 350, 110);
 }
 
 /**
