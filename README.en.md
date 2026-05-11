@@ -1,8 +1,10 @@
 # Export Design Archive File
 
+[中文](./README.md)
+
 ## Plugin Introduction
 
-This is a batch export plugin specifically designed for JLCEDA, supporting the bulk export of design resources such as project files, component libraries, and package libraries. The extension is particularly suitable for offline client users, enabling convenient export of design resources as local files for backup or migration.
+This is a batch export plugin specifically designed for EasyEDA, supporting the bulk export of design resources such as project files, component libraries, and package libraries. The extension is particularly suitable for offline client users, enabling convenient export of design resources as local files for backup or migration.
 
 ## Main Features
 
