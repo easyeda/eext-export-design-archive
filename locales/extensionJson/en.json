@@ -1,6 +1,6 @@
 {
-	"displayName": "Export Design Archive",
-	"description": "Tool for batch exporting project and library archive files",
+	"导出设计压缩包": "Export Design Archive",
+	"用于批量导出工程和库文件压缩包的工具": "Tool for batch exporting project and library archive files",
 	"Export": "Export",
 	"Project": "Project",
 	"Library": "Library"
