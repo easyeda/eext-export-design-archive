@@ -49,6 +49,21 @@
 				return tag;
 			}
 
+			function applyI18n() {
+				var els = document.querySelectorAll('[data-i18n]');
+				for (var i = 0; i < els.length; i++) {
+					els[i].textContent = t(els[i].getAttribute('data-i18n'));
+				}
+				var phEls = document.querySelectorAll('[data-i18n-placeholder]');
+				for (var j = 0; j < phEls.length; j++) {
+					phEls[j].placeholder = t(phEls[j].getAttribute('data-i18n-placeholder'));
+				}
+				var titleEls = document.querySelectorAll('[data-i18n-title]');
+				for (var k = 0; k < titleEls.length; k++) {
+					titleEls[k].title = t(titleEls[k].getAttribute('data-i18n-title'));
+				}
+			}
+
 			document.title = t('Export Footprint Archive');
 			document.getElementById('browserTip').textContent = t('If using in browser, allow automatic downloads after download starts.');
 			document.getElementById('formatTip').innerHTML = t('Footprint export format info');
