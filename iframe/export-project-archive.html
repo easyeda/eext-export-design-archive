@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-Hans">
 	<head>
-		<title>导出工程压缩包</title>
+		<title></title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<style>
@@ -13,16 +13,28 @@
 		</style>
 	</head>
 	<body>
-		<p style="font-size: 11px">如果在浏览器使用，请在下载开始后在地址栏允许连续多次自动下载文件，推荐在工作区点击批量下载按钮，速度更快。</p>
-		<p style="font-size: 11px">导出的文件可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
-		<span style="font-size: 14px">请选择团队：</span>
+		<p id="projectBrowserTip" style="font-size: 11px"></p>
+		<p id="importTip" style="font-size: 11px"></p>
+		<span id="teamLabel" style="font-size: 14px"></span>
 		<select id="teamSelect" style="max-width: 140px">
 			<option value="">---</option>
 		</select>
 		<br />
 		<br />
-		<input id="exportButton" value="导出" type="button" />
+		<input id="exportButton" value="" type="button" />
 		<script type="text/javascript">
+			var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+			function t(tag, ...args) {
+				if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
+				return tag;
+			}
+
+			document.title = t('Export Project Archive');
+			document.getElementById('projectBrowserTip').textContent = t('If using in browser, allow automatic downloads after download starts. Batch download from workspace is recommended for faster speed.');
+			document.getElementById('importTip').textContent = t('Exported files can be imported via Editor > File > Import > EasyEDA Pro.');
+			document.getElementById('teamLabel').textContent = t('Please select a team:');
+			document.getElementById('exportButton').value = t('Export');
+
 			document.getElementById('teamSelect').onclick = async function () {
 				if (document.getElementById('teamSelect').options.length <= 1) {
 					const teams = await eda.dmt_Team.getAllTeamsInfo();

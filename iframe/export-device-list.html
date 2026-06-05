@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-Hans">
 	<head>
-		<title>获取器件清单</title>
+		<title></title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<script src="/iframe/js/xlsx.full.min.js"></script>
@@ -23,7 +23,7 @@
 		<table>
 			<tbody>
 				<tr>
-					<td align="right"><span>导出库所属：</span></td>
+					<td align="right"><span id="libraryLabel"></span></td>
 					<td>
 						<select id="librarySelect" style="max-width: 160px">
 							<option value="">---</option>
@@ -33,11 +33,23 @@
 			</tbody>
 		</table>
 		<br />
-		<input id="exportButton" value="导出" type="button" />
-		<span id="messageBar">请设置导出参数</span>
-		<div id="loading">正在加载器件数据，请稍候...</div>
+		<input id="exportButton" value="" type="button" />
+		<span id="messageBar"></span>
+		<div id="loading"></div>
 	</body>
 	<script>
+		var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+		function t(tag, ...args) {
+			if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
+			return tag;
+		}
+
+		document.title = t('Get Device List');
+		document.getElementById('libraryLabel').textContent = t('Export library:');
+		document.getElementById('exportButton').value = t('Export');
+		document.getElementById('messageBar').textContent = t('Please set export parameters');
+		document.getElementById('loading').textContent = t('Loading device data, please wait...');
+
 		document.addEventListener('DOMContentLoaded', async function () {
 			try {
 				const OtherLibraries = await eda.lib_LibrariesList.getAllLibrariesList();
@@ -47,9 +59,9 @@
 				//	const SystemLibrary = await eda.lib_LibrariesList.getSystemLibraryUuid();
 
 				const specialLibraries = [
-					{ uuid: PersonLibrary, name: '个人' },
-					{ uuid: ProjectLibrary, name: '工程' },
-					{ uuid: StarLibrary, name: '收藏' },
+					{ uuid: PersonLibrary, name: t('Personal') },
+					{ uuid: ProjectLibrary, name: t('Project') },
+					{ uuid: StarLibrary, name: t('Favorites') },
 				];
 
 				const specialUuids = new Set(specialLibraries.map((lib) => lib.uuid));
@@ -63,7 +75,7 @@
 				document.getElementById('exportButton').addEventListener('click', async () => {
 					const libUuid = select.value;
 					if (!libUuid) {
-						document.getElementById('messageBar').textContent = '请先选择一个库';
+						document.getElementById('messageBar').textContent = t('Please select a library first');
 						return;
 					}
 
@@ -163,7 +175,7 @@
 							totalCount += currentList.length;
 							loadedCount += currentList.length; // ← 累加
 							// 更新进度提示
-							messageBar.textContent = `已加载 ${loadedCount} 个器件...`;
+							messageBar.textContent = t('Loaded ${1} devices...', loadedCount);
 
 							// 满 5000 就导出
 							while (buffer.length >= chunkSize) {
@@ -181,13 +193,13 @@
 						}
 
 						if (totalCount === 0) {
-							messageBar.textContent = '该库中没有器件';
+							messageBar.textContent = t('No devices in this library');
 						} else {
-							messageBar.textContent = `成功导出 ${totalCount} 个器件，分为 ${fileCount} 个文件，含 ${extraAttributeNames.length} 个自定义属性`;
+							messageBar.textContent = t('Exported ${1} devices in ${2} files with ${3} custom attributes', totalCount, fileCount, extraAttributeNames.length);
 						}
 					} catch (error) {
-						console.error('导出失败:', error);
-						messageBar.textContent = '导出失败，请查看控制台';
+						console.error(t('Export failed, please check console'), error);
+						messageBar.textContent = t('Export failed, please check console');
 					} finally {
 						loadingEl.style.display = 'none';
 					}
@@ -238,8 +250,8 @@
 					XLSX.writeFile(wb, fileName);
 				}
 			} catch (err) {
-				console.error('初始化失败:', err);
-				document.getElementById('messageBar').textContent = '初始化失败，请查看控制台';
+				console.error(t('Initialization failed, please check console'), err);
+				document.getElementById('messageBar').textContent = t('Initialization failed, please check console');
 			}
 		});
 	</script>

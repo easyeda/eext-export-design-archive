@@ -1,0 +1,7 @@
+{
+	"displayName": "导出设计压缩包",
+	"description": "用于批量导出工程和库文件压缩包的工具",
+	"Export": "导出",
+	"Project": "工程",
+	"Library": "库"
+}

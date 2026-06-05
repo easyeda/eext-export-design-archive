@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="zh-Hans">
 	<head>
-		<title>导出器件压缩包</title>
+		<title></title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<style>
@@ -13,11 +13,11 @@
 		</style>
 	</head>
 	<body>
-		<p style="font-size: 11px">导出的文件可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。</p>
+		<p id="importTip" style="font-size: 11px"></p>
 		<textarea
 			id="lcscId"
 			rows="5"
-			placeholder="请输入立创 C 编号，多个编号使用英文逗号或换行分隔，导出时将从 嘉立创EDA 系统库进行导出。"
+			placeholder=""
 			autocapitalize="characters"
 			autocomplete="off"
 			minlength="2"
@@ -26,13 +26,25 @@
 			required="true"
 		></textarea>
 		<br />
-		<input id="exportButton" value="导出" type="button" />&nbsp;
-		<span id="messageBar" style="font-size: 11px">请设置导出参数</span>
+		<input id="exportButton" value="" type="button" />&nbsp;
+		<span id="messageBar" style="font-size: 11px"></span>
 		<script type="text/javascript">
+			var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+			function t(tag, ...args) {
+				if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
+				return tag;
+			}
+
+			document.title = t('Export Device Archive');
+			document.getElementById('importTip').textContent = t('Exported files can be imported via Editor > File > Import > EasyEDA Pro.');
+			document.getElementById('lcscId').placeholder = t('Enter LCSC part numbers, separated by commas or newlines. Export will be from EasyEDA system library.');
+			document.getElementById('exportButton').value = t('Export');
+			document.getElementById('messageBar').textContent = t('Please set export parameters');
+
 			document.getElementById('exportButton').onclick = async function () {
 				document.getElementById('exportButton').disabled = true;
 				document.getElementById('lcscId').readonly = true;
-				document.getElementById('messageBar').innerHTML = '开始导出';
+				document.getElementById('messageBar').innerHTML = t('Start exporting');
 
 				// 获取编辑器版本并确定文件格式
 				const editorVersion = await eda.sys_Environment.getEditorCurrentVersion();
@@ -47,7 +59,7 @@
 				const systemLibraryUuid = await eda.lib_LibrariesList.getSystemLibraryUuid();
 				const lcscIdString = await document.getElementById('lcscId').value;
 				if (!systemLibraryUuid) {
-					document.getElementById('messageBar').innerHTML = '未选择导出的库';
+					document.getElementById('messageBar').innerHTML = t('No library selected');
 					document.getElementById('exportButton').disabled = false;
 					document.getElementById('lcscId').readonly = false;
 					return;
@@ -75,16 +87,12 @@
 
 				const lcscIdList = multiLineStrToArray(lcscIdString.replace(/[,，]+/g, '\n'));
 				console.log('[INFO] lcscIdList: ', lcscIdList);
-				document.getElementById('messageBar').innerHTML = '正在查询器件 (0/' + lcscIdList.length.toString() + ')';
+				document.getElementById('messageBar').innerHTML = t('Querying devices (${1}/${2})', 0, lcscIdList.length);
 				const deviceUuids = [];
 				const unmatchedLcscIdList = [];
 				for (const lcscId of lcscIdList) {
 					document.getElementById('messageBar').innerHTML =
-						'正在查询器件 (' +
-						(deviceUuids.length + unmatchedLcscIdList.length + 1).toString() +
-						'/' +
-						lcscIdList.length.toString() +
-						')';
+						t('Querying devices (${1}/${2})', deviceUuids.length + unmatchedLcscIdList.length + 1, lcscIdList.length);
 					const searchResult = await eda.lib_Device.search(lcscId, systemLibraryUuid, undefined, 2, 15, 1);
 					let isSearched = false;
 					for (const resultLine of searchResult) {
@@ -101,30 +109,25 @@
 				console.log('[INFO] deviceUuids: ', deviceUuids);
 
 				if (deviceUuids.length >= 1) {
-					document.getElementById('messageBar').innerHTML = '正在导出 ' + deviceUuids.length.toString() + ' 个器件';
+					document.getElementById('messageBar').innerHTML = t('Exporting ${1} devices', deviceUuids.length);
 					await eda.sys_FileSystem.saveFile(
 						await eda.sys_FileManager.getDeviceFileByDeviceUuid(deviceUuids, systemLibraryUuid, fileFormat),
 					);
 					if (unmatchedLcscIdList.length === 0) {
-						document.getElementById('messageBar').innerHTML = '导出已完成';
-						eda.sys_ToastMessage.showMessage('导出已完成，成功导出 ' + deviceUuids.length.toString() + ' 个器件', 3);
+						document.getElementById('messageBar').innerHTML = t('Export completed');
+						eda.sys_ToastMessage.showMessage(t('Export completed, successfully exported ${1} devices', deviceUuids.length), 3);
 					} else {
-						document.getElementById('messageBar').innerHTML = '导出已完成，但存在错误';
-						eda.sys_ToastMessage.showMessage('导出已完成，但存在 ' + unmatchedLcscIdList.length.toString() + ' 个未匹配的器件', 1);
+						document.getElementById('messageBar').innerHTML = t('Export completed, but with errors');
+						eda.sys_ToastMessage.showMessage(t('Export completed, but ${1} devices unmatched', unmatchedLcscIdList.length), 1);
 						eda.sys_MessageBox.showInformationMessage(
-							'导出已完成，成功导出 ' +
-								deviceUuids.length.toString() +
-								' 个器件，有 ' +
-								unmatchedLcscIdList.length.toString() +
-								'个 C 编号未匹配到器件，分别为：\n' +
-								unmatchedLcscIdList.join(', '),
-							'导出结果',
+							t('Export completed, exported ${1} devices, ${2} part numbers not matched:\n${3}', deviceUuids.length, unmatchedLcscIdList.length, unmatchedLcscIdList.join(', ')),
+							t('Export result'),
 						);
 					}
 				} else {
-					document.getElementById('messageBar').innerHTML = '导出失败';
-					eda.sys_ToastMessage.showMessage('导出失败，未匹配到任何器件', 0);
-					eda.sys_MessageBox.showInformationMessage('导出失败，未匹配到任何器件', '导出结果');
+					document.getElementById('messageBar').innerHTML = t('Export failed');
+					eda.sys_ToastMessage.showMessage(t('Export failed, no devices matched'), 0);
+					eda.sys_MessageBox.showInformationMessage(t('Export failed, no devices matched'), t('Export result'));
 				}
 
 				document.getElementById('exportButton').disabled = false;

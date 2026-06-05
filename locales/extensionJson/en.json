@@ -1,0 +1,7 @@
+{
+	"displayName": "Export Design Archive",
+	"description": "Tool for batch exporting project and library archive files",
+	"Export": "Export",
+	"Project": "Project",
+	"Library": "Library"
+}
