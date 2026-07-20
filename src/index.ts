@@ -32,7 +32,13 @@ export async function exportProjectArchive(): Promise<void> {
  * 导出器件压缩包
  */
 export async function exportDeviceArchive(): Promise<void> {
-	eda.sys_IFrame.openIFrame('/iframe/export-device-archive.html', 350, 280);
+	const version = await eda.sys_Environment.getEditorCurrentVersion();
+	const v3 = (version.split('.')[0] | 0) >= 3;
+	if (v3) {
+		eda.sys_IFrame.openIFrame('/iframe/export-device-archive-v3.html', 350, 460);
+	} else {
+		eda.sys_IFrame.openIFrame('/iframe/export-device-archive-v2.html', 350, 280);
+	}
 }
 /**
  * 导出封装压缩包

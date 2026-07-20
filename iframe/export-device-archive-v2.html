@@ -43,7 +43,7 @@
 		<input id="exportButton" value="" type="button" />&nbsp;
 		<span id="messageBar" style="font-size: 11px"></span>
 		<script type="text/javascript">
-			var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+			var edaObj = typeof eda !== 'undefined' ? eda : window.parent && window.parent.eda;
 			function t(tag, ...args) {
 				if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
 				return tag;

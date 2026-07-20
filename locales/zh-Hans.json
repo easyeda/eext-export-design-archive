@@ -27,7 +27,7 @@
 	"Items per export:": "每次导出数量：",
 	"Export all devices:": "导出全部器件：",
 	"Export all footprints:": "导出全部封装：",
-	"Start from page:": "从第几次开始导出：",
+	"Start from page:": "起始页：",
 	"Personal": "个人",
 	"Project": "工程",
 	"Favorites": "收藏",

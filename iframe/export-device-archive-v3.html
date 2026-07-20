@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="zh-Hans">
+	<head>
+		<title></title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<style>
+			@media (prefers-color-scheme: dark) {
+				body {
+					color: #e5e5e5;
+					background: #404040;
+				}
+				select,
+				input {
+					background: #404040;
+					color: #e5e5e5;
+					border-color: #555;
+				}
+				select:disabled,
+				input:disabled {
+					background: #2e2e2e;
+					color: #8d8d8d;
+				}
+				.prog-box {
+					border-color: #222;
+				}
+				.prog-wrap {
+					border-color: #555;
+				}
+			}
+
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			body {
+				font-family: 'Microsoft YaHei', Arial, sans-serif;
+				font-size: 12px;
+				line-height: 16px;
+				padding: 10px;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+
+			.info {
+				font-size: 11px;
+				color: #868686;
+				margin-bottom: 10px;
+			}
+			@media (prefers-color-scheme: dark) {
+				.info {
+					color: #8d8d8d;
+				}
+			}
+
+			.row {
+				display: flex;
+				align-items: center;
+				margin-bottom: 8px;
+			}
+			.lbl {
+				width: 100px;
+				flex-shrink: 0;
+				font-size: 12px;
+			}
+			.row-cb {
+				cursor: pointer;
+			}
+			.row-cb input {
+				width: 14px;
+				height: 14px;
+				margin: 0;
+				accent-color: #1890ff;
+			}
+
+			select,
+			input[type='number'] {
+				font-family: inherit;
+				font-size: 12px;
+				height: 24px;
+				border: 1px solid #d9d9d9;
+				border-radius: 2px;
+				background: #fff;
+				color: #333;
+				outline: none;
+				padding: 0 4px;
+			}
+			select:focus,
+			input[type='number']:focus {
+				border-color: #1890ff;
+				box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+			}
+			select:disabled,
+			input:disabled {
+				background: #f1f1f1;
+				color: #868686;
+				cursor: not-allowed;
+			}
+			select {
+				width: 100%;
+			}
+			input[type='number'] {
+				width: 70px;
+			}
+
+			.btns {
+				display: flex;
+				justify-content: flex-end;
+				margin: 10px 0 6px;
+			}
+			.btn {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				height: 28px;
+				min-width: 72px;
+				padding: 0 10px;
+				font-family: inherit;
+				font-size: 12px;
+				border: 1px solid transparent;
+				border-radius: 2px;
+				cursor: pointer;
+				outline: none;
+				white-space: nowrap;
+				transition:
+					background-color 0.2s,
+					border-color 0.2s;
+			}
+			.btn-go {
+				background: #1890ff;
+				border-color: #1890ff;
+				color: #fff;
+			}
+			.btn-go:hover {
+				background: #40a9ff;
+				border-color: #40a9ff;
+			}
+			.btn-go:active {
+				background: #096dd9;
+			}
+			.btn-go:disabled {
+				background: #d9d9d9;
+				border-color: #d9d9d9;
+				color: #868686;
+				cursor: not-allowed;
+			}
+			@media (prefers-color-scheme: dark) {
+				.btn-go:disabled {
+					background: #8d8d8d;
+					border-color: #8d8d8d;
+				}
+			}
+
+			.prog-box {
+				display: none;
+				margin-bottom: 10px;
+				padding: 8px;
+				border: 1px solid #e9e9e9;
+				border-radius: 4px;
+			}
+			.prog-box.on {
+				display: block;
+			}
+			.prog-stats {
+				display: flex;
+				justify-content: space-between;
+				font-size: 11px;
+				margin-bottom: 6px;
+			}
+			.prog-wrap {
+				border: 1px solid #d3d3d3;
+				border-radius: 5px;
+				overflow: hidden;
+				position: relative;
+				height: 16px;
+			}
+			.prog-bar {
+				background: #096dd9;
+				border-radius: 5px 0 0 5px;
+				height: 100%;
+				width: 0%;
+				position: absolute;
+				top: 0;
+				left: 0;
+				transition: width 0.2s;
+			}
+			.prog-bar.indet {
+				width: 30%;
+				border-radius: 5px;
+				animation: progSlide 1.5s ease-in-out infinite;
+			}
+			@keyframes progSlide {
+				0% {
+					left: -30%;
+				}
+				100% {
+					left: 100%;
+				}
+			}
+			.prog-label {
+				position: absolute;
+				inset: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 11px;
+				z-index: 1;
+				pointer-events: none;
+			}
+
+			.status {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				font-size: 11px;
+				min-height: 16px;
+			}
+			.spin {
+				display: none;
+				width: 12px;
+				height: 12px;
+				border: 2px solid #d9d9d9;
+				border-top-color: #1890ff;
+				border-radius: 50%;
+				animation: rot 0.8s linear infinite;
+				flex-shrink: 0;
+			}
+			.spin.on {
+				display: inline-block;
+			}
+			@keyframes rot {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="info" id="infoText"></div>
+
+		<div class="row">
+			<span class="lbl" id="libraryLabel"></span
+			><select id="libSel">
+				<option value="">---</option>
+			</select>
+		</div>
+		<div class="row">
+			<span class="lbl" id="priLabel"></span
+			><select id="priSel">
+				<option value="">全部</option>
+			</select>
+		</div>
+		<div class="row">
+			<span class="lbl" id="secLabel"></span
+			><select id="secSel">
+				<option value="">全部</option>
+			</select>
+		</div>
+		<div class="row"><span class="lbl" id="itemsLabel"></span><input type="number" id="itemsVal" value="2000" min="1" max="2000" /></div>
+		<label class="row row-cb"><span class="lbl" id="allLabel"></span><input type="checkbox" id="allCb" /></label>
+		<div class="row" id="pageRow">
+			<span class="lbl" id="pageLabel"></span>
+			<input type="number" id="pageVal" value="1" min="1" />
+		</div>
+		<label class="row row-cb"><span class="lbl" id="folderLabel"></span><input type="checkbox" id="folderCb" /></label>
+
+		<div class="prog-box" id="pBox">
+			<div class="prog-stats"><span id="pPg"></span><span id="pDev"></span><span id="pFile"></span></div>
+			<div class="prog-wrap">
+				<div class="prog-bar" id="pBar"></div>
+				<div class="prog-label" id="pLabel"></div>
+			</div>
+		</div>
+
+		<div class="btns">
+			<button class="btn btn-go" id="goBtn"></button>
+		</div>
+
+		<div class="status"><span class="spin" id="spin"></span><span id="stMsg"></span></div>
+
+		<script src="/iframe/jszip.min.js"></script>
+		<script type="text/javascript">
+			var E = typeof eda !== 'undefined' ? eda : window.parent && window.parent.eda;
+
+			function t(tag) {
+				if (E && E.sys_I18n) {
+					var a = [tag, undefined, undefined];
+					for (var i = 1; i < arguments.length; i++) a.push(arguments[i]);
+					return E.sys_I18n.text.apply(E.sys_I18n, a);
+				}
+				return tag;
+			}
+
+			function toast(msg, type, duration) {
+				if (E && E.sys_Message) {
+					E.sys_Message.showToastMessage(msg, type || 'info', duration || 2);
+				}
+			}
+
+			function $(id) {
+				return document.getElementById(id);
+			}
+
+			var libSel = $('libSel'),
+				priSel = $('priSel'),
+				secSel = $('secSel');
+			var itemsVal = $('itemsVal'),
+				allCb = $('allCb'),
+				folderCb = $('folderCb');
+			var pageVal = $('pageVal'),
+				pageRow = $('pageRow'),
+				goBtn = $('goBtn');
+			var stMsg = $('stMsg'),
+				spin = $('spin');
+			var pBox = $('pBox'),
+				pBar = $('pBar'),
+				pLabel = $('pLabel');
+			var pPg = $('pPg'),
+				pDev = $('pDev'),
+				pFile = $('pFile');
+
+			// Cached classification tree for current library
+			var classTree = [];
+			// Whether we need to reload classifications when library changes
+			var classLoadedForUuid = '';
+
+			function setMsg(s) {
+				stMsg.textContent = s;
+			}
+			function exporting(on) {
+				goBtn.disabled = on;
+				libSel.disabled = on;
+				priSel.disabled = on;
+				secSel.disabled = on;
+				itemsVal.disabled = on;
+				allCb.disabled = on;
+				folderCb.disabled = on;
+				pageVal.disabled = on || allCb.checked;
+				pBox.classList.toggle('on', on);
+				spin.classList.toggle('on', on);
+				if (on) {
+					pBar.classList.remove('indet');
+					pBar.style.width = '0%';
+				}
+			}
+			function updProg(pg, curDev, totalDev, files, label) {
+				pPg.innerHTML = t('正在导出第 ${1} 页', pg).replace('${1}', '<b>' + pg + '</b>');
+				pDev.innerHTML = t('正在导出 ${1} 个器件').replace('${1}', '<b>' + curDev + '/' + totalDev + '</b>');
+				pFile.innerHTML = t('导出') + ': <b>' + files + '</b>';
+				if (totalDev > 0) {
+					pBar.classList.remove('indet');
+					pBar.style.width = Math.round((curDev / totalDev) * 100) + '%';
+					pLabel.textContent = label || Math.round((curDev / totalDev) * 100) + '%';
+				} else {
+					pBar.classList.add('indet');
+					pBar.style.width = '';
+					pLabel.textContent = label || t('正在导出第 ${1} 页', pg).replace('${1}', pg);
+				}
+			}
+
+			// i18n init
+			$('infoText').innerHTML = t('导出的 .elibz 文件，可以在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。');
+			$('libraryLabel').textContent = t('导出库所属：');
+			$('priLabel').textContent = t('导出一级分类：');
+			$('secLabel').textContent = t('导出二级分类：');
+			$('itemsLabel').textContent = t('每次导出数量：');
+			$('allLabel').textContent = t('导出全部器件：');
+			$('pageLabel').textContent = t('起始页：');
+			$('folderLabel').textContent = t('按分类导出：');
+			goBtn.textContent = t('导出');
+
+			// ========== Lock helpers ==========
+			function lockClassifications() {
+				priSel.value = '';
+				secSel.value = '';
+				priSel.disabled = true;
+				secSel.disabled = true;
+				secSel.innerHTML = '<option value="">全部</option>';
+			}
+			function unlockClassifications() {
+				priSel.disabled = false;
+				if (priSel.value === '') {
+					secSel.disabled = true;
+				} else {
+					secSel.disabled = false;
+				}
+			}
+			function getClassificationFilter() {
+				var pri = priSel.value;
+				var sec = secSel.value;
+				if (!pri) return undefined; // 全部
+				return {
+					libraryType: '3',
+					libraryUuid: libSel.value,
+					primaryClassificationUuid: pri,
+					secondaryClassificationUuid: sec || undefined,
+				};
+			}
+			function getClassificationPath(device) {
+				if (!folderCb.checked) return '';
+				var cls = device.classification;
+				if (!cls) return '';
+				var priName = '',
+					secName = '';
+				for (var i = 0; i < classTree.length; i++) {
+					var pc = classTree[i];
+					if (pc.uuid === (cls.primaryClassificationUuid || (Array.isArray(cls) ? cls[0] : ''))) {
+						priName = pc.name;
+						if (pc.children && cls.secondaryClassificationUuid) {
+							for (var j = 0; j < pc.children.length; j++) {
+								if (pc.children[j].uuid === cls.secondaryClassificationUuid) {
+									secName = pc.children[j].name;
+									break;
+								}
+							}
+						}
+						break;
+					}
+				}
+				var path = '';
+				if (priName) {
+					path += priName + '/';
+				}
+				if (secName) {
+					path += secName + '/';
+				}
+				return path;
+			}
+
+			// Cascading: primary → secondary
+			priSel.onchange = function () {
+				var pri = priSel.value;
+				secSel.innerHTML = '<option value="">全部</option>';
+				if (!pri) {
+					secSel.value = '';
+					secSel.disabled = true;
+					return;
+				}
+				secSel.disabled = false;
+				for (var i = 0; i < classTree.length; i++) {
+					if (classTree[i].uuid === pri && classTree[i].children) {
+						for (var j = 0; j < classTree[i].children.length; j++) {
+							var o = document.createElement('option');
+							o.value = classTree[i].children[j].uuid;
+							o.textContent = classTree[i].children[j].name;
+							secSel.appendChild(o);
+						}
+						break;
+					}
+				}
+			};
+
+			// 导出全部器件 → lock classifications
+			allCb.onclick = function () {
+				var checked = allCb.checked;
+				pageVal.disabled = checked;
+				pageRow.style.opacity = checked ? '0.5' : '1';
+				if (checked) {
+					lockClassifications();
+				} else {
+					unlockClassifications();
+				}
+			};
+
+			// ========== Load libraries ==========
+			async function loadLibs() {
+				libSel.disabled = true;
+				try {
+					var libs = [];
+					var p = await E.lib_LibrariesList.getPersonalLibraryUuid();
+					if (p && p.uuid) {
+						p = p.uuid;
+						libs.push({ n: t('个人'), u: p });
+					}
+					var prj = await E.lib_LibrariesList.getProjectLibraryUuid();
+					if (prj) libs.push({ n: t('工程'), u: prj });
+					var fav = await E.lib_LibrariesList.getFavoriteLibraryUuid();
+					if (fav) libs.push({ n: t('收藏'), u: fav });
+					var all = await E.lib_LibrariesList.getAllLibrariesList();
+					if (all) for (var i = 0; i < all.length; i++) libs.push({ n: all[i].name, u: all[i].uuid });
+					for (var j = 0; j < libs.length; j++) {
+						var o = document.createElement('option');
+						o.innerHTML = libs[j].n;
+						o.value = libs[j].u;
+						libSel.appendChild(o);
+					}
+				} catch (e) {
+					console.error('加载库列表失败:', e);
+				} finally {
+					libSel.disabled = false;
+				}
+			}
+
+			// ========== Load classifications for selected library ==========
+			async function loadClassifications() {
+				var libUuid = libSel.value;
+				if (!libUuid || libUuid === classLoadedForUuid) return;
+				classLoadedForUuid = '';
+				priSel.innerHTML = '<option value="">全部</option>';
+				secSel.innerHTML = '<option value="">全部</option>';
+				priSel.disabled = true;
+				secSel.disabled = true;
+				try {
+					classTree = await E.lib_Classification.getAllClassificationTree(libUuid, '3');
+					for (var i = 0; i < classTree.length; i++) {
+						// Skip placeholder "ALL" entries from API
+						var name = classTree[i].name;
+						if (!name || name.toUpperCase() === 'ALL') continue;
+						var o = document.createElement('option');
+						o.value = classTree[i].uuid;
+						o.textContent = name;
+						priSel.appendChild(o);
+					}
+					classLoadedForUuid = libUuid;
+					if (!allCb.checked) {
+						priSel.disabled = false;
+					}
+				} catch (e) {
+					console.error('加载分类失败:', e);
+				}
+			}
+
+			// Reload classifications when library changes
+			libSel.onchange = function () {
+				classLoadedForUuid = '';
+				secSel.value = '';
+				secSel.disabled = true;
+				secSel.innerHTML = '<option value="">全部</option>';
+				loadClassifications();
+			};
+
+			// ========== Core export ==========
+			goBtn.onclick = async function () {
+				var libUuid = libSel.value;
+				var perPage = Number(itemsVal.value);
+				var pgNum = Number(pageVal.value);
+				var all = allCb.checked;
+
+				if (!libUuid) {
+					toast(t('未选择导出的库'), 'error');
+					return;
+				}
+				if (!perPage || perPage < 1) {
+					toast(t('导出器件数或页数不能为零'), 'error');
+					return;
+				}
+				if (perPage > 2000) {
+					perPage = 2000;
+					itemsVal.value = 2000;
+				}
+				if (!all && pgNum < 1) {
+					toast(t('导出器件数或页数不能为零'), 'error');
+					return;
+				}
+
+				// Ensure classifications are loaded
+				await loadClassifications();
+
+				exporting(true);
+				var totalDevs = 0,
+					totalFiles = 0;
+
+				try {
+					var editorVer = '2.0.0';
+					try {
+						editorVer = await E.sys_Environment.getEditorCurrentVersion();
+					} catch (e) {}
+					var v3 = (editorVer.split('.')[0] | 0) >= 3;
+					var fmt = v3 ? 'elibz2' : 'elibz';
+					var ext = v3 ? '.elibz2' : '.elibz';
+					try {
+						if (
+							typeof E.sys_Environment.isClient === 'function' &&
+							E.sys_Environment.isClient() &&
+							typeof E.sys_Environment.isOfflineMode === 'function' &&
+							E.sys_Environment.isOfflineMode()
+						) {
+							E.sys_PanelControl.openBottomPanel('library');
+						}
+					} catch (e) {}
+
+					// Client-side classification filter (API doesn't support server-side filtering)
+					var priFilter = priSel.value;
+					var secFilter = secSel.value;
+					function matchesFilter(dev) {
+						if (!priFilter) return true;
+						var cls = dev.classification;
+						if (!cls) return false;
+						var devPri = cls.primaryClassificationUuid || (Array.isArray(cls) ? cls[0] : '');
+						if (devPri !== priFilter) return false;
+						if (!secFilter) return true;
+						var devSec = cls.secondaryClassificationUuid || (Array.isArray(cls) ? cls[1] : '');
+						return devSec === secFilter;
+					}
+
+					async function exportPage(devices, pg) {
+						var zip = new JSZip();
+						for (var i = 0; i < devices.length; i++) {
+							var dev = devices[i];
+							updProg(
+								pg,
+								i + 1,
+								devices.length,
+								totalFiles,
+								t('正在导出第 ${1} 页', pg).replace('${1}', pg) + ' (' + (i + 1) + '/' + devices.length + ')',
+							);
+
+							var devLibUuid = dev.libraryUuid || libUuid;
+							var file;
+							try {
+								file = await E.sys_FileManager.getDeviceFileByDeviceUuid(dev.uuid, devLibUuid, fmt);
+							} catch (e) {
+								console.error('获取器件文件失败:', dev.uuid, dev.name, e);
+								continue;
+							}
+							if (!file) continue;
+
+							// Use device name (sanitized) as filename
+							var devName = (dev.name || dev.uuid.slice(0, 8)).replace(/[\\/:*?"<>|]/g, '_');
+							var fname = i + 1 + '_' + devName + ext;
+
+							// Folder hierarchy if enabled
+							var folderPath = getClassificationPath(dev);
+							if (folderPath) {
+								fname = folderPath + fname;
+							}
+
+							zip.file(fname, file);
+							totalDevs++;
+							if (i % 10 === 0) {
+								await new Promise(function (r) {
+									setTimeout(r, 10);
+								});
+							}
+						}
+
+						var blob = await zip.generateAsync({ type: 'blob' });
+						var zipName = 'devices_' + (libUuid || 'sys').slice(0, 8) + '_' + perPage + '_' + pg + '.zip';
+						await E.sys_FileSystem.saveFile(new File([blob], zipName));
+						totalFiles++;
+						updProg(pg, devices.length, devices.length, totalFiles, '100%');
+					}
+
+					if (all) {
+						var pg = 0;
+						while (true) {
+							pg++;
+							setMsg(t('正在获取器件列表'));
+							updProg(pg, 0, 0, totalFiles);
+							await new Promise(function (r) {
+								setTimeout(r, 30);
+							});
+
+							var devs;
+							try {
+								devs = await E.lib_Device.search('', libUuid, undefined, 2, perPage, pg);
+							} catch (e) {
+								console.error('器件搜索失败:', e);
+								toast(t('导出失败，请查看控制台'), 'error');
+								break;
+							}
+
+							if (!devs || !devs.length) {
+								break;
+							}
+							// Client-side filter
+							var filtered = devs.filter(matchesFilter);
+							if (filtered.length) {
+								setMsg(t('正在导出第 ${1} 页', pg));
+								await exportPage(filtered, pg);
+							}
+							if (devs.length < perPage) break;
+							await new Promise(function (r) {
+								setTimeout(r, 50);
+							});
+						}
+					} else {
+						setMsg(t('正在获取器件列表'));
+						updProg(pgNum, 0, 0, 0);
+
+						var devs;
+						try {
+							devs = await E.lib_Device.search('', libUuid, undefined, 2, perPage, pgNum);
+						} catch (e) {
+							console.error('器件搜索失败:', e);
+							toast(t('导出失败，请查看控制台'), 'error');
+							exporting(false);
+							return;
+						}
+
+						if (!devs || !devs.length) {
+							setMsg(t('没有器件可供导出'));
+							exporting(false);
+							return;
+						}
+						// Client-side filter
+						var filtered = devs.filter(matchesFilter);
+						if (!filtered.length) {
+							setMsg(t('没有器件可供导出'));
+							exporting(false);
+							return;
+						}
+
+						setMsg(t('正在导出第 ${1} 页', pgNum));
+						await exportPage(filtered, pgNum);
+					}
+
+					if (totalDevs > 0) {
+						setMsg(t('导出已完成'));
+						toast(t('导出已完成'), 'success', 1);
+					} else {
+						setMsg(t('没有器件可供导出'));
+					}
+				} catch (e) {
+					console.error('导出异常:', e);
+					toast(t('导出失败，请查看控制台'), 'error');
+				} finally {
+					exporting(false);
+					if (totalDevs > 0)
+						setTimeout(function () {
+							pBox.classList.remove('on');
+						}, 3000);
+					else pBox.classList.remove('on');
+				}
+			};
+
+			pageVal.disabled = allCb.checked;
+			pageRow.style.opacity = allCb.checked ? '0.5' : '1';
+			loadLibs();
+		</script>
+	</body>
+</html>
