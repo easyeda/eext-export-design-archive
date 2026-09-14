@@ -23,7 +23,7 @@
 		<br />
 		<input id="exportButton" value="" type="button" />
 		<script type="text/javascript">
-			var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+			var edaObj = typeof eda !== 'undefined' ? eda : window.parent && window.parent.eda;
 			function t(tag, ...args) {
 				if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
 				return tag;
@@ -44,26 +44,51 @@
 				}
 			}
 
+			// 「当前工程」选项的占位值，避免与团队 UUID 冲突
+			var CURRENT_PROJECT_VALUE = '__current_project__';
+
 			document.title = t('Export Project Archive');
-			document.getElementById('projectBrowserTip').textContent = t('If using in browser, allow automatic downloads after download starts. Batch download from workspace is recommended for faster speed.');
+			document.getElementById('projectBrowserTip').textContent = t(
+				'If using in browser, allow automatic downloads after download starts. Batch download from workspace is recommended for faster speed.',
+			);
 			document.getElementById('importTip').textContent = t('Exported files can be imported via Editor > File > Import > EasyEDA Pro.');
-			document.getElementById('teamLabel').textContent = t('Please select a team:');
+			document.getElementById('teamLabel').textContent = t('Please select a team or project:');
 			document.getElementById('exportButton').value = t('Export');
 
-			document.getElementById('teamSelect').onclick = async function () {
-				if (document.getElementById('teamSelect').options.length <= 1) {
-					const teams = await eda.dmt_Team.getAllTeamsInfo();
-					for (const team of teams) {
-						const optionElement = document.createElement('option');
-						optionElement.innerHTML = team.name;
-						optionElement.value = team.uuid;
-						document.getElementById('teamSelect').appendChild(optionElement);
+			// 下拉列表构成：--- / 当前工程（若已打开工程）/ 全部团队
+			document.addEventListener('DOMContentLoaded', async function () {
+				var sel = document.getElementById('teamSelect');
+				sel.disabled = true;
+				try {
+					var pinfo = await eda.dmt_Project.getCurrentProjectInfo();
+					if (pinfo && pinfo.uuid) {
+						var opt = document.createElement('option');
+						opt.value = CURRENT_PROJECT_VALUE;
+						var label = pinfo.friendlyName || pinfo.name || '';
+						opt.textContent = t('Current Project') + (label ? ' (' + label + ')' : '');
+						sel.appendChild(opt);
 					}
+				} catch (e) {
+					console.error('获取当前工程失败:', e);
 				}
-			};
+				try {
+					var teams = await eda.dmt_Team.getAllTeamsInfo();
+					for (var i = 0; i < teams.length; i++) {
+						var teamOption = document.createElement('option');
+						teamOption.innerHTML = teams[i].name;
+						teamOption.value = teams[i].uuid;
+						sel.appendChild(teamOption);
+					}
+				} catch (e) {
+					console.error('获取团队列表失败:', e);
+				} finally {
+					sel.disabled = false;
+				}
+			});
+
 			document.getElementById('exportButton').onclick = async function () {
-				const teamUuid = document.getElementById('teamSelect').value;
-				if (!teamUuid) {
+				const selected = document.getElementById('teamSelect').value;
+				if (!selected) {
 					return;
 				}
 				// 获取编辑器版本并确定文件格式
@@ -73,7 +98,20 @@
 				const versionParts = editorVersion.split('.').map(Number);
 				const isVersion3OrAbove = versionParts[0] >= 3;
 				const fileFormat = isVersion3OrAbove ? '.epro2' : '.epro';
-				const projectUuids = await eda.dmt_Project.getAllProjectsUuid(teamUuid);
+
+				let projectUuids;
+				if (selected === CURRENT_PROJECT_VALUE) {
+					// 只导出当前正在编辑的工程
+					const pinfo = await eda.dmt_Project.getCurrentProjectInfo();
+					if (!pinfo || !pinfo.uuid) {
+						eda.sys_Message.showToastMessage(t('No project is currently open'));
+						return;
+					}
+					projectUuids = [pinfo.uuid];
+				} else {
+					projectUuids = await eda.dmt_Project.getAllProjectsUuid(selected);
+				}
+
 				// 当前没有办法使用 request 请求权限，只能让用户手动赋予权限，或在批量下载的时候触发浏览器的权限弹窗
 				// 如果该网域的【下载多个文件】的权限之前已被设置为 deny，那么无论如何也无法通过编程的方式唤起浏览器权限弹窗
 				// https://developer.mozilla.org/en-US/docs/Web/API/Permissions_API/Using_the_Permissions_API#conclusion_and_future_work

@@ -41,11 +41,15 @@
 	"Loading device data, please wait...": "Loading device data, please wait...",
 	"Please select a library first": "Please select a library first",
 	"Loaded ${1} devices...": "Loaded ${1} devices...",
+	"Loaded ${1} / ${2} devices": "Loaded ${1} / ${2} devices",
 	"No devices in this library": "No devices in this library",
 	"Exported ${1} devices in ${2} files with ${3} custom attributes": "Exported ${1} devices in ${2} files with ${3} custom attributes",
 	"Export failed, please check console": "Export failed, please check console",
 	"Initialization failed, please check console": "Initialization failed, please check console",
 	"Please select a team:": "Please select a team:",
+	"Please select a team or project:": "Please select a team or project:",
+	"Current Project": "Current Project",
+	"No project is currently open": "No project is currently open",
 	"If using in browser, allow automatic downloads after download starts. Batch download from workspace is recommended for faster speed.": "If using in browser, allow automatic downloads after download starts. Batch download from workspace is recommended for faster speed.",
 	"Footprint export format info": "Exported file format is auto-selected based on EDA version: version >= 3.0.0.0 exports <code>.elibz2</code>, version < 3.0.0.0 exports <code>.elibz</code>. Files can be imported via Editor > File > Import > EasyEDA Pro."
 }

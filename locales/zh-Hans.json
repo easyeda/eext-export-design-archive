@@ -41,11 +41,15 @@
 	"Loading device data, please wait...": "正在加载器件数据，请稍候...",
 	"Please select a library first": "请先选择一个库",
 	"Loaded ${1} devices...": "已加载 ${1} 个器件...",
+	"Loaded ${1} / ${2} devices": "已加载 ${1} / ${2} 个器件",
 	"No devices in this library": "该库中没有器件",
 	"Exported ${1} devices in ${2} files with ${3} custom attributes": "成功导出 ${1} 个器件，分为 ${2} 个文件，含 ${3} 个自定义属性",
 	"Export failed, please check console": "导出失败，请查看控制台",
 	"Initialization failed, please check console": "初始化失败，请查看控制台",
 	"Please select a team:": "请选择团队：",
+	"Please select a team or project:": "请选择团队或工程：",
+	"Current Project": "当前工程",
+	"No project is currently open": "当前没有打开的工程",
 	"If using in browser, allow automatic downloads after download starts. Batch download from workspace is recommended for faster speed.": "如果在浏览器使用，请在下载开始后在地址栏允许连续多次自动下载文件，推荐在工作区点击批量下载按钮，速度更快。",
 	"Footprint export format info": "导出的文件格式会根据EDA版本自动选择：版本 ≥ 3.0.0.0 导出 <code>.elibz2</code>，版本 < 3.0.0.0 导出 <code>.elibz</code>。文件可在 编辑器 - 文件 - 导入 - 嘉立创EDA专业版 导入。"
 }

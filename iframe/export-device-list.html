@@ -6,39 +6,213 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<script src="/iframe/js/xlsx.full.min.js"></script>
 		<style>
-			#loading {
-				display: none;
-				color: #007bff;
-				font-weight: bold;
-				margin-top: 10px;
+			/* ===== EDA UI 设计规范 =====
+			   色彩: 品牌蓝 #1890ff / hover #40a9ff / pressed #096dd9
+			   排版: 12px, "Microsoft YaHei", Arial, sans-serif, 行高 16px
+			   间距: 4px 网格, 标准 8px, 面板内边距 12px
+			   圆角: 按钮/输入/下拉 2px | 进度条 5px
+			   进度条: 边框 #d3d3d3 / 填充 #096dd9 / 文本填充区内白、区外深色 */
+			:root {
+				--eda-brand: #1890ff;
+				--eda-brand-hover: #40a9ff;
+				--eda-brand-pressed: #096dd9;
+				--eda-border: #d9d9d9;
+				--eda-focus-ring: rgba(24, 144, 255, 0.2);
+				--eda-text-secondary: #868686;
 			}
+
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				margin: 0;
+				padding: 0;
+			}
+			body {
+				font-family: 'Microsoft YaHei', Arial, sans-serif;
+				font-size: 12px;
+				line-height: 16px;
+				color: var(--common-font-color, #333);
+				padding: 12px;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+
+			/* ===== 表单行 ===== */
+			.form-row {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				margin-bottom: 8px;
+			}
+			.form-label {
+				flex-shrink: 0;
+			}
+
+			/* ===== 下拉框 ===== */
+			.eda-select {
+				flex: 1;
+				min-width: 0;
+				height: 24px;
+				padding: 0 6px;
+				font-size: 12px;
+				font-family: inherit;
+				color: inherit;
+				background: var(--common-bg-color, #fff);
+				border: 1px solid var(--common-border-color, var(--eda-border));
+				border-radius: 2px;
+				outline: none;
+				cursor: pointer;
+			}
+			.eda-select:focus {
+				border-color: var(--eda-brand);
+				box-shadow: 0 0 0 2px var(--eda-focus-ring);
+			}
+			.eda-select:disabled {
+				background: var(--bg-color-disabled-input, #f1f1f1);
+				color: var(--font-color-disabled-drop-down-menuItem, #868686);
+				cursor: not-allowed;
+			}
+
+			/* ===== 进度条 ===== */
+			.progress-area {
+				display: none;
+				margin-bottom: 8px;
+			}
+			.progress-area.on {
+				display: block;
+			}
+			.progressbar {
+				position: relative;
+				height: 16px;
+				border: 1px solid #d3d3d3;
+				border-radius: 5px;
+				overflow: hidden;
+			}
+			.progressbar-fill {
+				position: absolute;
+				left: 0;
+				top: 0;
+				bottom: 0;
+				width: 0;
+				background-color: var(--eda-brand-pressed);
+				border-radius: 5px 0 0 5px;
+				transition: width 0.2s ease;
+			}
+			.progressbar-text {
+				position: absolute;
+				left: 0;
+				right: 0;
+				top: 0;
+				bottom: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 12px;
+				line-height: 1;
+				white-space: nowrap;
+				color: var(--common-font-color, #333);
+			}
+			/* 叠加在填充区内的文本，用 clip-path 裁切出「填充区内白色」的效果 */
+			.progressbar-text.on-fill {
+				color: #fff;
+				clip-path: inset(0 calc(100% - var(--pct, 0%)) 0 0);
+			}
+			/* 总数未知时的不确定态 */
+			.progressbar.indeterminate .progressbar-fill {
+				width: 30%;
+				border-radius: 5px;
+				animation: pbIndeterminate 1.2s ease-in-out infinite;
+			}
+			@keyframes pbIndeterminate {
+				0% {
+					transform: translateX(-100%);
+				}
+				100% {
+					transform: translateX(333%);
+				}
+			}
+
+			/* ===== 状态信息 ===== */
+			.message-bar {
+				min-height: 16px;
+				margin-bottom: 8px;
+				font-size: 12px;
+				line-height: 16px;
+				color: var(--eda-text-secondary);
+				word-break: break-all;
+			}
+
+			/* ===== 按钮 ===== */
+			.dialog-footer {
+				display: flex;
+				justify-content: flex-end;
+			}
+			.eda-btn {
+				height: 28px;
+				min-width: 96px;
+				padding: 0 10px;
+				font-size: 12px;
+				font-family: inherit;
+				border-radius: 2px;
+				cursor: pointer;
+				outline: none;
+			}
+			.eda-btn-primary {
+				color: #fff;
+				background: var(--eda-brand);
+				border: 1px solid var(--eda-brand);
+			}
+			.eda-btn-primary:hover:not(:disabled) {
+				background: var(--eda-brand-hover);
+				border-color: var(--eda-brand-hover);
+			}
+			.eda-btn-primary:active:not(:disabled) {
+				background: var(--eda-brand-pressed);
+				border-color: var(--eda-brand-pressed);
+			}
+			.eda-btn:disabled {
+				color: #fff;
+				background: var(--bg-color-disabled-primary-button, #d9d9d9);
+				border: 1px solid var(--bg-color-disabled-primary-button, #d9d9d9);
+				cursor: not-allowed;
+			}
+
 			@media (prefers-color-scheme: dark) {
-				body {
-					color: white;
+				:root {
+					--eda-text-secondary: #8d8d8d;
+				}
+				.progressbar {
+					border-color: #555;
 				}
 			}
 		</style>
 	</head>
 	<body>
-		<table>
-			<tbody>
-				<tr>
-					<td align="right"><span id="libraryLabel"></span></td>
-					<td>
-						<select id="librarySelect" style="max-width: 160px">
-							<option value="">---</option>
-						</select>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<br />
-		<input id="exportButton" value="" type="button" />
-		<span id="messageBar"></span>
-		<div id="loading"></div>
+		<div class="form-row">
+			<label class="form-label" id="libraryLabel" for="librarySelect"></label>
+			<select id="librarySelect" class="eda-select">
+				<option value="">---</option>
+			</select>
+		</div>
+
+		<div class="progress-area" id="progressArea">
+			<div class="progressbar" id="progressBar">
+				<div class="progressbar-fill" id="progressFill"></div>
+				<span class="progressbar-text" id="progressTextOut"></span>
+				<span class="progressbar-text on-fill" id="progressTextIn"></span>
+			</div>
+		</div>
+
+		<div class="message-bar" id="messageBar"></div>
+
+		<div class="dialog-footer">
+			<input id="exportButton" class="eda-btn eda-btn-primary" value="" type="button" />
+		</div>
 	</body>
 	<script>
-		var edaObj = (typeof eda !== 'undefined') ? eda : (window.parent && window.parent.eda);
+		var edaObj = typeof eda !== 'undefined' ? eda : window.parent && window.parent.eda;
 		function t(tag, ...args) {
 			if (edaObj && edaObj.sys_I18n) return edaObj.sys_I18n.text(tag, undefined, undefined, ...args);
 			return tag;
@@ -59,11 +233,206 @@
 			}
 		}
 
+		var libraryLabel = document.getElementById('libraryLabel');
+		var librarySelect = document.getElementById('librarySelect');
+		var exportButton = document.getElementById('exportButton');
+		var messageBar = document.getElementById('messageBar');
+		var progressArea = document.getElementById('progressArea');
+		var progressBar = document.getElementById('progressBar');
+		var progressFill = document.getElementById('progressFill');
+		var progressTextOut = document.getElementById('progressTextOut');
+		var progressTextIn = document.getElementById('progressTextIn');
+
 		document.title = t('Get Device List');
-		document.getElementById('libraryLabel').textContent = t('Export library:');
-		document.getElementById('exportButton').value = t('Export');
-		document.getElementById('messageBar').textContent = t('Please set export parameters');
-		document.getElementById('loading').textContent = t('Loading device data, please wait...');
+		libraryLabel.textContent = t('Export library:');
+		exportButton.value = t('Export');
+		messageBar.textContent = t('Please set export parameters');
+
+		/** 更新进度条；total 未知时显示不确定态（滑动动画） */
+		function showProgress(loaded, total) {
+			progressArea.classList.add('on');
+			var indeterminate = !total || total <= 0;
+			progressBar.classList.toggle('indeterminate', indeterminate);
+			var text;
+			if (indeterminate) {
+				progressFill.style.width = '';
+				progressBar.style.setProperty('--pct', '0%');
+				text = t('Loading device data, please wait...');
+			} else {
+				var pct = Math.max(0, Math.min(100, Math.round((loaded / total) * 100)));
+				progressFill.style.width = pct + '%';
+				progressBar.style.setProperty('--pct', pct + '%');
+				text = pct + '%';
+			}
+			progressTextOut.textContent = text;
+			progressTextIn.textContent = text;
+		}
+
+		function completeProgress() {
+			progressBar.classList.remove('indeterminate');
+			progressFill.style.width = '100%';
+			progressBar.style.setProperty('--pct', '100%');
+			progressTextOut.textContent = '100%';
+			progressTextIn.textContent = '100%';
+		}
+
+		function hideProgress() {
+			progressArea.classList.remove('on');
+			progressBar.classList.remove('indeterminate');
+		}
+
+		// 服务端库（系统库/团队库）走 /api/v2/devices 一次性拉取：一次请求即可拿全量器件，远快于逐页调用
+		var REST_PAGE_SIZE = 5000;
+		// 本地库（工程库等未被服务端接口收录的库）走官方本地 API 逐页枚举
+		var LOCAL_PAGE_SIZE = 300;
+		// ELIB_SymbolType.COMPONENT —— 只枚举器件，排除图纸、电源/接地标识等非器件符号
+		var SYMBOL_TYPE_COMPONENT = 2;
+		var CHUNK_SIZE = 5000;
+
+		// 这些属性已作为固定列输出，不再重复出现在「自定义属性」中
+		var EXCLUDED_ATTRIBUTE_KEYS = new Set([
+			'3D Model Title',
+			'Add into BOM',
+			'Convert to PCB',
+			'Device',
+			'Primary Category',
+			'Secondary Category',
+			'Part Number',
+			'Designator',
+			'Name',
+			'Manufacturer',
+			'Manufacturer Part',
+			'Supplier',
+			'Supplier Part',
+			'Value',
+			'Datasheet',
+			'Description',
+			'3D Model',
+			'3D Model Transform',
+			'Comment',
+			'Footprint',
+			'LCSC Part Name',
+			'Supplier Footprint',
+			'Symbol',
+		]);
+
+		var CLASS_CACHE = new Map();
+
+		/**
+		 * 把器件对象归一化成「属性名 -> 值」的表。
+		 * 服务端接口用 attributes，官方本地接口用 otherProperty，两者字段意义一致。
+		 */
+		function toAttributeBag(dev) {
+			var bag = {};
+			var p = dev.attributes || dev.otherProperty || {};
+			for (var k in p) {
+				if (Object.prototype.hasOwnProperty.call(p, k) && p[k] !== undefined && p[k] !== null) {
+					bag[k] = p[k];
+				}
+			}
+			function fill(key, value) {
+				if (bag[key] === undefined && value !== undefined && value !== null && value !== '') bag[key] = value;
+			}
+			fill('Manufacturer', dev.manufacturer);
+			fill('Manufacturer Part', dev.manufacturerId);
+			fill('Supplier', dev.supplier);
+			fill('Supplier Part', dev.supplierId);
+			fill('Description', dev.description);
+			fill('3D Model Title', dev.model3DName);
+			return bag;
+		}
+
+		/** 关联文档名称：服务端接口给 symbol/footprint 对象，本地接口给 symbolName/footprintName */
+		function relatedName(obj, info, flat) {
+			if (obj && (obj.display_title || obj.name || obj.title)) return obj.display_title || obj.name || obj.title;
+			if (info && (info.display_title || info.name || info.title)) return info.display_title || info.name || info.title;
+			return flat || '';
+		}
+
+		/** 标签既可能是数组也可能是对象，取首个名称 */
+		function tagName(tag) {
+			if (!tag) return '';
+			if (Array.isArray(tag)) return tag.length ? tag[0].name || tag[0].display_title || '' : '';
+			return tag.name || tag.display_title || '';
+		}
+
+		/** 分类名称：优先用服务端返回的 tags，其次用本地分类接口解析 */
+		async function resolveCategories(dev) {
+			var fromTags = {
+				primary: tagName(dev.tags && dev.tags.parent_tag),
+				secondary: tagName(dev.tags && dev.tags.child_tag),
+			};
+			if (fromTags.primary || fromTags.secondary) return fromTags;
+
+			var classification = dev.classification;
+			if (!classification || !classification.primaryClassificationUuid) return { primary: '', secondary: '' };
+			var key = [
+				classification.libraryUuid,
+				classification.libraryType,
+				classification.primaryClassificationUuid,
+				classification.secondaryClassificationUuid,
+			].join('|');
+			if (!CLASS_CACHE.has(key)) {
+				var value = { primary: '', secondary: '' };
+				try {
+					var names = await eda.lib_Classification.getNameByIndex(classification);
+					if (names) {
+						value = {
+							primary: names.primaryClassificationName || '',
+							secondary: names.secondaryClassificationName || '',
+						};
+					}
+				} catch (e) {
+					console.error('分类名称解析失败:', classification, e);
+				}
+				CLASS_CACHE.set(key, value);
+			}
+			return CLASS_CACHE.get(key);
+		}
+
+		/**
+		 * 服务端接口拉取：/api/v2/devices?uid=<库UUID>&page=1&pageSize=5000
+		 * 一次请求返回全量（count 为总数），仅当超过 pageSize 才继续翻页。
+		 * 注意：不要带 path 参数，带了会导致空响应。
+		 */
+		async function fetchViaRest(libUuid, onProgress) {
+			var all = [];
+			var page = 1;
+			while (true) {
+				var url =
+					window.location.origin + '/api/v2/devices?uid=' + encodeURIComponent(libUuid) + '&page=' + page + '&pageSize=' + REST_PAGE_SIZE;
+				var res = await fetch(url);
+				if (!res.ok) throw new Error('HTTP ' + res.status);
+				var data = await res.json();
+				var result = data && data.result;
+				var lists = (result && result.lists) || [];
+				if (!lists.length) break;
+				all.push.apply(all, lists);
+				if (onProgress) onProgress(all.length, result && result.count);
+				var total = result && result.count;
+				if (total && all.length >= total) break;
+				if (lists.length < REST_PAGE_SIZE) break;
+				page++;
+			}
+			return all;
+		}
+
+		/**
+		 * 官方本地 API 兜底：工程库等库不在服务端接口里（返回 0），只能本地逐页枚举。
+		 */
+		async function fetchViaLocal(libUuid, onProgress) {
+			var all = [];
+			var page = 1;
+			while (true) {
+				var devs = await eda.lib_Device.search('', libUuid, undefined, SYMBOL_TYPE_COMPONENT, LOCAL_PAGE_SIZE, page);
+				if (!devs || devs.length === 0) break;
+				all.push.apply(all, devs);
+				if (onProgress) onProgress(all.length, null);
+				if (devs.length < LOCAL_PAGE_SIZE) break;
+				page++;
+			}
+			return all;
+		}
 
 		document.addEventListener('DOMContentLoaded', async function () {
 			try {
@@ -71,80 +440,53 @@
 				const StarLibrary = await eda.lib_LibrariesList.getFavoriteLibraryUuid();
 				const PersonLibrary = await eda.lib_LibrariesList.getPersonalLibraryUuid();
 				const ProjectLibrary = await eda.lib_LibrariesList.getProjectLibraryUuid();
-				//	const SystemLibrary = await eda.lib_LibrariesList.getSystemLibraryUuid();
 
 				const specialLibraries = [
 					{ uuid: PersonLibrary, name: t('Personal') },
 					{ uuid: ProjectLibrary, name: t('Project') },
 					{ uuid: StarLibrary, name: t('Favorites') },
-				];
+				].filter((lib) => !!lib.uuid);
 
 				const specialUuids = new Set(specialLibraries.map((lib) => lib.uuid));
 				const filteredOtherLibraries = OtherLibraries.filter((lib) => !specialUuids.has(lib.uuid));
 				const allLibraries = [...specialLibraries, ...filteredOtherLibraries];
 
-				const select = document.getElementById('librarySelect');
-				select.innerHTML =
+				librarySelect.innerHTML =
 					'<option value="">---</option>' + allLibraries.map((lib) => `<option value="${lib.uuid}">${lib.name}</option>`).join('');
 
-				document.getElementById('exportButton').addEventListener('click', async () => {
-					const libUuid = select.value;
+				exportButton.addEventListener('click', async () => {
+					const libUuid = librarySelect.value;
 					if (!libUuid) {
-						document.getElementById('messageBar').textContent = t('Please select a library first');
+						messageBar.textContent = t('Please select a library first');
 						return;
 					}
 
-					const loadingEl = document.getElementById('loading');
-					const messageBar = document.getElementById('messageBar');
-					loadingEl.style.display = 'block';
 					messageBar.textContent = '';
+					exportButton.disabled = true;
+					librarySelect.disabled = true;
+					showProgress(0, 0);
 
 					try {
-						const excludedAttributeKeys = new Set([
-							'3D Model Title',
-							'Add into BOM',
-							'Convert to PCB',
-							'Designator',
-							'Name',
-							'Manufacturer',
-							'Manufacturer Part',
-							'Supplier',
-							'Supplier Part',
-							'Value',
-							'Datasheet',
-							'Description',
-							'3D Model',
-							'3D Model Transform',
-							'Comment',
-							'Footprint',
-							'LCSC Part Name',
-							'Supplier Footprint',
-							'Symbol',
-						]);
-						const currentUrl = window.location.origin;
-						console.log(currentUrl);
-						// 第一次遍历：收集所有自定义属性名（不显示进度）
-						let page = 1;
-						const pageSize = 300;
-						let allExtraAttrs = new Set();
-						console.log(`${currentUrl}/api/v2/devices?path=${libUuid}&uid=${libUuid}&page=${page}&pageSize=${pageSize}`);
-						while (true) {
-							const res = await fetch(`${currentUrl}/api/v2/devices?path=${libUuid}&uid=${libUuid}&page=${page}&pageSize=${pageSize}`);
-							const data = await res.json();
-							const currentList = data.result?.lists || [];
-							if (currentList.length === 0) break;
+						function reportProgress(loaded, total) {
+							showProgress(loaded, total);
+							messageBar.textContent = total ? t('Loaded ${1} / ${2} devices', loaded, total) : t('Loaded ${1} devices...', loaded);
+						}
 
-							for (const item of currentList) {
-								const attrs = item.attributes || {};
-								for (const key in attrs) {
-									if (attrs.hasOwnProperty(key) && !excludedAttributeKeys.has(key)) {
-										allExtraAttrs.add(key);
-									}
+						// 先试服务端接口（一次请求拿全量）；返回空则回退到本地 API（工程库走这条）
+						let devices = await fetchViaRest(libUuid, reportProgress);
+						if (!devices.length) {
+							devices = await fetchViaLocal(libUuid, reportProgress);
+						}
+
+						// 收集所有自定义属性名
+						const allExtraAttrs = new Set();
+						for (const item of devices) {
+							const attrs = toAttributeBag(item);
+							for (const key in attrs) {
+								if (Object.prototype.hasOwnProperty.call(attrs, key) && !EXCLUDED_ATTRIBUTE_KEYS.has(key)) {
+									allExtraAttrs.add(key);
 								}
 							}
-
-							if (currentList.length < pageSize) break;
-							page++;
 						}
 
 						const extraAttributeNames = Array.from(allExtraAttrs).sort();
@@ -171,91 +513,75 @@
 						const allHeaders = [...baseHeaders, ...extraAttributeNames];
 						const baseLen = baseHeaders.length;
 
-						// 第二次遍历：拉取数据并分块导出，显示进度
-						page = 1;
+						// 分块导出
 						let buffer = [];
-						const chunkSize = 5000;
 						let fileCount = 0;
-						let totalCount = 0;
-						let loadedCount = 0; // ← 新增：已加载数量
-
-						while (true) {
-							const res = await fetch(`${currentUrl}/api/v2/devices?path=${libUuid}&uid=${libUuid}&page=${page}&pageSize=${pageSize}`);
-
-							const data = await res.json();
-							const currentList = data.result?.lists || [];
-							if (currentList.length === 0) break;
-
-							buffer.push(...currentList);
-							totalCount += currentList.length;
-							loadedCount += currentList.length; // ← 累加
-							// 更新进度提示
-							messageBar.textContent = t('Loaded ${1} devices...', loadedCount);
-
-							// 满 5000 就导出
-							while (buffer.length >= chunkSize) {
-								const chunk = buffer.splice(0, chunkSize);
-								await exportChunk(chunk, allHeaders, baseLen, ++fileCount);
+						for (let i = 0; i < devices.length; i++) {
+							buffer.push(await buildRow(devices[i], extraAttributeNames));
+							if (buffer.length >= CHUNK_SIZE) {
+								await exportChunk(buffer, allHeaders, baseLen, ++fileCount);
+								buffer = [];
 							}
-
-							if (currentList.length < pageSize) break;
-							page++;
 						}
-
-						// 导出剩余
 						if (buffer.length > 0) {
 							await exportChunk(buffer, allHeaders, baseLen, ++fileCount);
 						}
 
-						if (totalCount === 0) {
+						if (devices.length === 0) {
+							hideProgress();
 							messageBar.textContent = t('No devices in this library');
 						} else {
-							messageBar.textContent = t('Exported ${1} devices in ${2} files with ${3} custom attributes', totalCount, fileCount, extraAttributeNames.length);
+							completeProgress();
+							messageBar.textContent = t(
+								'Exported ${1} devices in ${2} files with ${3} custom attributes',
+								devices.length,
+								fileCount,
+								extraAttributeNames.length,
+							);
 						}
 					} catch (error) {
 						console.error(t('Export failed, please check console'), error);
+						hideProgress();
 						messageBar.textContent = t('Export failed, please check console');
 					} finally {
-						loadingEl.style.display = 'none';
+						exportButton.disabled = false;
+						librarySelect.disabled = false;
 					}
 				});
 
-				async function exportChunk(chunk, headers, baseLen, partIndex) {
-					const rows = chunk.map((item) => {
-						const attrs = item.attributes || {};
-						const getNested = (obj, path, fallback = '') => {
-							return path.split('.').reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : fallback), obj);
-						};
+				async function buildRow(item, extraAttributeNames) {
+					const attrs = toAttributeBag(item);
+					const categories = await resolveCategories(item);
+					const pick = (key, fallback) => (attrs[key] !== undefined && attrs[key] !== null ? attrs[key] : fallback || '');
+					const supplierPart = pick('Supplier Part', item.supplierId);
 
-						const supplierPart = getNested(attrs, 'Supplier Part');
+					const baseValues = [
+						item.display_title || item.name || '',
+						relatedName(item.symbol, item.symbol_info, item.symbolName),
+						relatedName(item.footprint, item.footprint_info, item.footprintName),
+						pick('3D Model Title', relatedName(item.model3D, null, item.model3DName)),
+						categories.primary,
+						categories.secondary,
+						pick('Add into BOM'),
+						pick('Convert to PCB'),
+						pick('Designator'),
+						pick('Name'),
+						pick('Manufacturer', item.manufacturer),
+						pick('Manufacturer Part', item.manufacturerId),
+						pick('Supplier', item.supplier),
+						supplierPart,
+						supplierPart,
+						pick('Value'),
+						pick('Datasheet'),
+						pick('Description', item.description),
+					];
 
-						const baseValues = [
-							getNested(item, 'display_title'),
-							getNested(item, 'symbol.display_title'),
-							getNested(item, 'footprint.display_title'),
-							getNested(attrs, '3D Model Title'),
-							getNested(item, 'tags.parent_tag.name'),
-							getNested(item, 'tags.child_tag.name'),
-							getNested(attrs, 'Add into BOM'),
-							getNested(attrs, 'Convert to PCB'),
-							getNested(attrs, 'Designator'),
-							getNested(attrs, 'Name'),
-							getNested(attrs, 'Manufacturer'),
-							getNested(attrs, 'Manufacturer Part'),
-							getNested(attrs, 'Supplier'),
-							supplierPart,
-							supplierPart,
-							getNested(attrs, 'Value'),
-							getNested(attrs, 'Datasheet'),
-							getNested(attrs, 'Description'),
-						];
+					const extraValues = extraAttributeNames.map((key) => (attrs[key] !== undefined && attrs[key] !== null ? String(attrs[key]) : ''));
 
-						const extraAttributeNames = headers.slice(baseLen);
-						const extraValues = extraAttributeNames.map((key) => (attrs[key] !== undefined ? String(attrs[key]) : ''));
+					return [...baseValues, ...extraValues];
+				}
 
-						return [...baseValues, ...extraValues];
-					});
-
+				async function exportChunk(rows, headers, baseLen, partIndex) {
 					const worksheetData = [headers, ...rows];
 					const ws = XLSX.utils.aoa_to_sheet(worksheetData);
 					const wb = XLSX.utils.book_new();
@@ -266,7 +592,7 @@
 				}
 			} catch (err) {
 				console.error(t('Initialization failed, please check console'), err);
-				document.getElementById('messageBar').textContent = t('Initialization failed, please check console');
+				messageBar.textContent = t('Initialization failed, please check console');
 			}
 		});
 	</script>
