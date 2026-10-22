@@ -3,20 +3,16 @@
  * 扫描桥接端口 → 临时 HTTP 服务托管 .eext → 通过 /execute 导入 → 清理
  */
 import { createServer } from 'http';
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const distDir = join(__dirname, 'dist');
 
-// 1. 找到最新的 .eext 文件
-const files = readdirSync(distDir).filter(f => f.endsWith('.eext'));
-if (!files.length) {
-    console.error('No .eext file found in build/dist/');
-    process.exit(1);
-}
-const eextFile = files[0];
+// 1. 导入当前清单对应的构建产物，避免误选历史版本。
+const manifest = JSON.parse(readFileSync(join(__dirname, '../extension.json'), 'utf8'));
+const eextFile = `${manifest.name}_v${manifest.version}.eext`;
 const eextPath = join(distDir, eextFile);
 const eextData = readFileSync(eextPath);
 console.log(`Found: ${eextFile} (${(eextData.length / 1024).toFixed(1)} KB)`);

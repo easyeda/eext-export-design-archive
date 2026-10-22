@@ -2,6 +2,7 @@
 !/.vscode/extensions.json
 !/.vscode/settings.json
 /coverage/
+/build/verification/
 /dist/
 /node_modules/
 /.eslintcache

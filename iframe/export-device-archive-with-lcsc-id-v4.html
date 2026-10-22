@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="zh-Hans">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>导出器件压缩包（根据立创编号）</title>
+		<style>
+			:root {
+				color-scheme: light;
+				--common-bg-color: #fff;
+				--common-font-color: #333;
+				--common-border-color: #e9e9e9;
+				--input-border: #d9d9d9;
+				--muted: #868686;
+				--primary: #1890ff;
+				--primary-hover: #40a9ff;
+				--error: #e55649;
+				--disabled-bg: #f1f1f1;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,
+			body {
+				height: 100%;
+				margin: 0;
+			}
+			body,
+			button,
+			textarea {
+				font:
+					12px 'Microsoft YaHei',
+					Arial,
+					sans-serif;
+			}
+			body {
+				color: var(--common-font-color);
+				background: var(--common-bg-color);
+			}
+			.panel {
+				display: flex;
+				flex-direction: column;
+				height: 100%;
+				border: none;
+			}
+			.content {
+				flex: 1;
+				min-height: 0;
+				overflow: auto;
+				padding: 16px;
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+			p {
+				margin: 0;
+				line-height: 20px;
+			}
+			.hint {
+				color: var(--muted);
+			}
+			.label-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 8px;
+			}
+			textarea {
+				width: 100%;
+				height: 100px;
+				flex-shrink: 0;
+				padding: 8px;
+				resize: none;
+				border: 1px solid var(--input-border);
+				border-radius: 2px;
+				color: var(--common-font-color);
+				background: var(--common-bg-color);
+				line-height: 20px;
+			}
+			textarea:focus {
+				outline: none;
+				border-color: var(--primary);
+				box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+			}
+			textarea[aria-invalid='true'] {
+				border-color: var(--error);
+			}
+			textarea:read-only {
+				background: var(--disabled-bg);
+			}
+			#validation {
+				min-height: 20px;
+				overflow-wrap: anywhere;
+			}
+			.error {
+				color: var(--error);
+			}
+			.results {
+				flex: 1;
+				min-height: 84px;
+				overflow: auto;
+				border-top: 1px solid var(--common-border-color);
+				border-bottom: 1px solid var(--common-border-color);
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				table-layout: fixed;
+			}
+			th,
+			td {
+				text-align: left;
+				padding: 6px 8px;
+				line-height: 16px;
+				border-bottom: 1px solid var(--common-border-color);
+				overflow-wrap: anywhere;
+				font-weight: normal;
+			}
+			th {
+				position: sticky;
+				top: 0;
+				background: var(--disabled-bg);
+			}
+			th:first-child {
+				width: 100px;
+			}
+			th:last-child {
+				width: 96px;
+			}
+			.empty {
+				text-align: center;
+				color: var(--muted);
+				padding: 16px;
+			}
+			footer {
+				flex-shrink: 0;
+				padding: 12px 16px;
+				border-top: 1px solid var(--common-border-color);
+			}
+			.footer-row {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				justify-content: flex-end;
+			}
+			#status {
+				flex: 1;
+				min-width: 0;
+				line-height: 18px;
+				overflow-wrap: anywhere;
+			}
+			button {
+				height: 28px;
+				min-width: 96px;
+				padding: 0 10px;
+				border: 1px solid var(--input-border);
+				border-radius: 2px;
+				background: var(--common-bg-color);
+				color: var(--common-font-color);
+				cursor: pointer;
+				flex-shrink: 0;
+			}
+			button:hover {
+				border-color: var(--primary-hover);
+				color: var(--primary-hover);
+			}
+			button:focus-visible {
+				outline: 2px solid var(--primary);
+				outline-offset: 2px;
+			}
+			button.primary {
+				background: var(--primary);
+				border-color: var(--primary);
+				color: #fff;
+			}
+			button.primary:hover {
+				background: var(--primary-hover);
+				border-color: var(--primary-hover);
+			}
+			button:disabled {
+				background: var(--disabled-bg);
+				border-color: var(--input-border);
+				color: var(--muted);
+				cursor: not-allowed;
+			}
+			progress {
+				width: 100%;
+				height: 5px;
+				display: block;
+				margin: 0;
+				accent-color: var(--primary);
+				border: 0;
+			}
+			progress::-webkit-progress-bar {
+				background: var(--common-border-color);
+			}
+			progress::-webkit-progress-value {
+				background: var(--primary);
+			}
+			.progress-track {
+				position: relative;
+				overflow: hidden;
+				height: 5px;
+				margin: 8px 0 12px;
+				background: var(--common-border-color);
+			}
+			.progress-track.indeterminate progress {
+				visibility: hidden;
+			}
+			.progress-track.indeterminate::after {
+				content: '';
+				position: absolute;
+				inset: 0 auto 0 0;
+				width: 35%;
+				background: var(--primary);
+				animation: exporting 1.4s linear infinite;
+			}
+			@keyframes exporting {
+				from {
+					transform: translateX(-100%);
+				}
+				to {
+					transform: translateX(286%);
+				}
+			}
+			#stage {
+				line-height: 20px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="panel">
+			<main class="content">
+				<p class="hint" data-i18n="LCSC archive introduction">从系统库匹配器件，导出可重新导入的 .elibz2 压缩包。</p>
+				<div class="label-row">
+					<label for="lcscIds" data-i18n="LCSC part numbers">立创编号</label
+					><span class="hint" data-i18n="LCSC separators">支持换行、逗号或空格分隔，自动去重</span>
+				</div>
+				<textarea id="lcscIds" placeholder="C25804&#10;C2040" spellcheck="false" autocomplete="off" aria-describedby="validation"></textarea>
+				<p id="validation" class="hint" aria-live="polite"></p>
+				<div class="results">
+					<table aria-label="匹配结果">
+						<thead>
+							<tr>
+								<th data-i18n="LCSC part numbers">立创编号</th>
+								<th data-i18n="Device name">器件名称</th>
+								<th data-i18n="Match status">匹配状态</th>
+							</tr>
+						</thead>
+						<tbody id="resultRows"></tbody>
+					</table>
+				</div>
+			</main>
+			<footer>
+				<p id="stage" class="hint"></p>
+				<div id="progressTrack" class="progress-track"><progress id="progress" value="0" max="1" aria-label="导出进度"></progress></div>
+				<div class="footer-row">
+					<p id="status" role="status"></p>
+					<button id="clear" data-i18n="Clear">清空</button
+					><button id="export" class="primary" data-i18n="Match and export">匹配并导出</button>
+				</div>
+			</footer>
+		</div>
+		<script src="/iframe/js/lcsc-export-v4.js"></script>
+		<script>
+			'use strict';
+			const api = typeof eda !== 'undefined' ? eda : window.parent?.eda;
+			const $ = (id) => document.getElementById(id);
+			function t(key, ...args) {
+				return api?.sys_I18n ? api.sys_I18n.text(key, undefined, undefined, ...args) : key;
+			}
+			document.title = t('Export Device Archive with LCSC ID');
+			document.querySelectorAll('[data-i18n]').forEach((el) => {
+				el.textContent = t(el.dataset.i18n);
+			});
+			document.querySelector('table').setAttribute('aria-label', t('Match results'));
+			$('progress').setAttribute('aria-label', t('Export progress'));
+			let busy = false;
+			let progressTimer;
+			function stopWaiting() {
+				clearInterval(progressTimer);
+				progressTimer = undefined;
+				$('progressTrack').classList.remove('indeterminate');
+				$('progressTrack').removeAttribute('role');
+				$('progressTrack').removeAttribute('aria-label');
+				$('progress').removeAttribute('aria-hidden');
+			}
+			function showWaiting(key, ...args) {
+				stopWaiting();
+				const started = Date.now();
+				$('progressTrack').classList.add('indeterminate');
+				$('progressTrack').setAttribute('role', 'progressbar');
+				$('progressTrack').setAttribute('aria-label', t(key, ...args));
+				$('progress').setAttribute('aria-hidden', 'true');
+				$('stage').textContent = t(key, ...args);
+				const tick = () => {
+					$('status').textContent = t('Elapsed ${1} · Waiting for completion', new Date(Date.now() - started).toISOString().slice(11, 19));
+				};
+				tick();
+				progressTimer = setInterval(tick, 1000);
+			}
+			window.addEventListener('pagehide', stopWaiting);
+			function validate() {
+				const parsed = lcscExportV4.parseIds($('lcscIds').value);
+				$('validation').textContent = parsed.invalid.length
+					? t('Invalid LCSC numbers: ${1}', parsed.invalid.join(', '))
+					: t('${1} unique numbers, ${2} duplicates removed', parsed.ids.length, parsed.duplicates);
+				$('validation').className = parsed.invalid.length ? 'error' : 'hint';
+				$('lcscIds').setAttribute('aria-invalid', String(parsed.invalid.length > 0));
+				$('export').disabled = busy || !api || !parsed.ids.length || !!parsed.invalid.length;
+				return parsed;
+			}
+			function renderRows(rows) {
+				$('resultRows').replaceChildren();
+				if (!rows.length) {
+					const tr = document.createElement('tr');
+					const td = document.createElement('td');
+					td.colSpan = 3;
+					td.className = 'empty';
+					td.textContent = t('Match results will appear here');
+					tr.append(td);
+					$('resultRows').append(tr);
+					return;
+				}
+				for (const row of rows) {
+					const tr = document.createElement('tr');
+					const texts = [
+						row.id,
+						row.device?.name || row.error || '—',
+						t({ matched: 'Matched', missing: 'Not found', error: 'Query failed' }[row.status]),
+					];
+					for (const text of texts) {
+						const td = document.createElement('td');
+						td.textContent = text;
+						tr.append(td);
+					}
+					if (row.status !== 'matched') tr.lastChild.className = 'error';
+					$('resultRows').append(tr);
+				}
+			}
+			function resetResults() {
+				stopWaiting();
+				$('stage').textContent = t('Ready to match');
+				renderRows([]);
+				$('progress').value = 0;
+				$('status').textContent = t(api ? 'Please set export parameters' : 'Open this page in EasyEDA');
+				$('status').className = '';
+				validate();
+			}
+			$('lcscIds').addEventListener('input', resetResults);
+			$('clear').onclick = () => {
+				$('lcscIds').value = '';
+				resetResults();
+				$('lcscIds').focus();
+			};
+			$('export').onclick = async () => {
+				if (busy) return;
+				const parsed = validate();
+				if (!api || !parsed.ids.length || parsed.invalid.length) return;
+				busy = true;
+				$('lcscIds').readOnly = true;
+				$('clear').disabled = true;
+				validate();
+				$('status').className = '';
+				renderRows([]);
+				stopWaiting();
+				$('stage').textContent = t('Step 1/3 · Matching part numbers');
+				$('progress').max = parsed.ids.length;
+				$('progress').value = 0;
+				$('status').textContent = t('Querying devices (${1}/${2})', 0, parsed.ids.length);
+				try {
+					const result = await lcscExportV4.queryDevices(api, parsed.ids, (rows) => {
+						renderRows(rows);
+						$('progress').value = rows.length;
+						$('status').textContent = t('Querying devices (${1}/${2})', rows.length, parsed.ids.length);
+					});
+					const matched = result.rows.filter((row) => row.device).length;
+					if (!matched) {
+						$('stage').textContent = t('No exportable devices; check the results');
+						$('status').textContent = t('No exportable devices; check the results');
+						$('status').className = 'error';
+						return;
+					}
+					showWaiting('Step 2/3 · Generating archive for ${1} devices', matched);
+					const file = await lcscExportV4.createArchive(api, result);
+					showWaiting('Step 3/3 · Saving archive');
+					await api.sys_FileSystem.saveFile(file);
+					stopWaiting();
+					$('stage').textContent = t('Archive generation completed');
+					$('progress').value = $('progress').max;
+					// saveFile returns void, so cancellation cannot be distinguished from a saved file.
+					$('status').textContent = t(
+						'Archive ready: ${1} matched, ${2} skipped. Check the save result.',
+						matched,
+						result.rows.length - matched,
+					);
+				} catch (error) {
+					$('stage').textContent = t('Export failed');
+					$('progress').value = 0;
+					$('status').textContent = t('Export error: ${1}', String(error.message || error));
+					$('status').className = 'error';
+				} finally {
+					stopWaiting();
+					busy = false;
+					$('lcscIds').readOnly = false;
+					$('clear').disabled = false;
+					validate();
+				}
+			};
+			resetResults();
+		</script>
+	</body>
+</html>

@@ -1,5 +1,14 @@
 import * as extensionConfig from '../extension.json';
 
+async function getEditorMajorVersion(): Promise<number> {
+	// The bundled API types predate this runtime method.
+	const environment = eda.sys_Environment as typeof eda.sys_Environment & {
+		getEditorCurrentVersion: () => Promise<string>;
+	};
+	const version = await environment.getEditorCurrentVersion();
+	return Number.parseInt(version.replace(/^v/i, '').split('.')[0], 10);
+}
+
 type TActivateStatus =
 	| 'onCommands'
 	| 'onLanguages'
@@ -32,8 +41,7 @@ export async function exportProjectArchive(): Promise<void> {
  * 导出器件压缩包
  */
 export async function exportDeviceArchive(): Promise<void> {
-	const version = await eda.sys_Environment.getEditorCurrentVersion();
-	const v3 = (version.split('.')[0] | 0) >= 3;
+	const v3 = (await getEditorMajorVersion()) >= 3;
 	if (v3) {
 		eda.sys_IFrame.openIFrame('/iframe/export-device-archive-v3.html', 350, 460);
 	} else {
@@ -51,7 +59,12 @@ export async function exportFootprintArchive(): Promise<void> {
  * 导出器件压缩包（根据立创编号）
  */
 export async function exportDeviceArchiveWithLcscId(): Promise<void> {
-	eda.sys_IFrame.openIFrame('/iframe/export-device-archive-with-lcsc-id.html', 350, 170);
+	const major = await getEditorMajorVersion();
+	if (major >= 4) {
+		await eda.sys_IFrame.openIFrame('/iframe/export-device-archive-with-lcsc-id-v4.html', 600, 460);
+	} else {
+		await eda.sys_IFrame.openIFrame('/iframe/export-device-archive-with-lcsc-id.html', 350, 170);
+	}
 }
 
 /**
