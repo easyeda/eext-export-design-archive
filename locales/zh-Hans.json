@@ -77,5 +77,9 @@
 	"Step 2/3 · Generating archive for ${1} devices": "第 2/3 步 · 正在生成 ${1} 个器件的压缩包",
 	"Step 3/3 · Saving archive": "第 3/3 步 · 保存压缩包",
 	"Elapsed ${1} · Waiting for completion": "已等待 ${1} · 等待处理完成",
-	"Archive generation completed": "压缩包生成完成"
+	"Archive generation completed": "压缩包生成完成",
+	"Copy unmatched numbers": "复制未匹配编号",
+	"Unmatched numbers (${1})": "未匹配编号（${1}）",
+	"Unmatched numbers copied": "未匹配编号已复制",
+	"Numbers selected; press Ctrl+C to copy": "编号已选中，请按 Ctrl+C 复制"
 }

@@ -34,6 +34,9 @@ function element() {
 		replaceChildren() {},
 		addEventListener() {},
 		focus() {},
+		select() {
+			this.selected = true;
+		},
 	};
 }
 async function scenario(fail) {
@@ -106,11 +109,42 @@ async function scenario(fail) {
 	assert.equal(timers.size, 0);
 	assert.equal(get('lcscIds').readOnly, false);
 	assert.equal(get('progressTrack').classList.contains('indeterminate'), false);
+	vm.runInContext(
+		`renderRows([
+		{id:'C1',status:'missing'}, {id:'C2',status:'missing'}, {id:'C1',status:'missing'},
+		{id:'C3',status:'error',error:'Network'}, {id:'C4',status:'matched',device:{name:'Found'}}
+	])`,
+		ctx,
+	);
+	assert.equal(get('unmatchedSection').hidden, false);
+	assert.equal(get('unmatchedIds').value, 'C1\nC2');
+	assert.equal(get('unmatchedLabel').textContent, 'Unmatched numbers (2)');
+	let copied;
+	ctx.navigator = {
+		clipboard: {
+			writeText: async (text) => {
+				copied = text;
+			},
+		},
+	};
+	await get('copyUnmatched').onclick();
+	assert.equal(copied, 'C1\nC2');
+	assert.equal(get('copyFeedback').textContent, 'Unmatched numbers copied');
+	ctx.navigator.clipboard.writeText = async () => {
+		throw new Error('Denied');
+	};
+	ctx.document.execCommand = () => false;
+	await get('copyUnmatched').onclick();
+	assert.equal(get('unmatchedIds').selected, true);
+	assert.equal(get('copyFeedback').textContent, 'Numbers selected; press Ctrl+C to copy');
+	vm.runInContext('resetResults()', ctx);
+	assert.equal(get('unmatchedSection').hidden, true);
+	assert.equal(get('unmatchedIds').value, '');
 }
 (async () => {
 	await scenario(false);
 	await scenario(true);
-	console.log('PASS: long-running archive animation, elapsed time, save stage, completion/error cleanup and controls restored');
+	console.log('PASS: progress lifecycle, unmatched collection/deduplication, copying, clipboard fallback and reset');
 })().catch((e) => {
 	console.error(e);
 	process.exitCode = 1;

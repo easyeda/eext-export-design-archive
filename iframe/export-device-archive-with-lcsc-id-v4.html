@@ -102,6 +102,19 @@
 				border-top: 1px solid var(--common-border-color);
 				border-bottom: 1px solid var(--common-border-color);
 			}
+			.unmatched {
+				flex-shrink: 0;
+			}
+			.unmatched[hidden] {
+				display: none;
+			}
+			#unmatchedIds {
+				height: 64px;
+				margin-top: 8px;
+			}
+			#copyFeedback {
+				min-height: 20px;
+			}
 			table {
 				width: 100%;
 				border-collapse: collapse;
@@ -238,6 +251,14 @@
 				</div>
 				<textarea id="lcscIds" placeholder="C25804&#10;C2040" spellcheck="false" autocomplete="off" aria-describedby="validation"></textarea>
 				<p id="validation" class="hint" aria-live="polite"></p>
+				<section id="unmatchedSection" class="unmatched" hidden>
+					<div class="label-row">
+						<label id="unmatchedLabel" for="unmatchedIds"></label>
+						<button id="copyUnmatched" data-i18n="Copy unmatched numbers">复制未匹配编号</button>
+					</div>
+					<textarea id="unmatchedIds" readonly spellcheck="false" aria-describedby="copyFeedback"></textarea>
+					<p id="copyFeedback" class="hint" role="status"></p>
+				</section>
 				<div class="results">
 					<table aria-label="匹配结果">
 						<thead>
@@ -311,6 +332,15 @@
 				return parsed;
 			}
 			function renderRows(rows) {
+				const missing = [...new Set(rows.filter((row) => row.status === 'missing').map((row) => row.id))];
+				$('unmatchedSection').hidden = missing.length === 0;
+				$('unmatchedLabel').textContent = t('Unmatched numbers (${1})', missing.length);
+				const missingText = missing.join('\n');
+				if ($('unmatchedIds').value !== missingText) {
+					$('unmatchedIds').value = missingText;
+					$('copyFeedback').textContent = '';
+				}
+				$('copyUnmatched').disabled = missing.length === 0;
 				$('resultRows').replaceChildren();
 				if (!rows.length) {
 					const tr = document.createElement('tr');
@@ -338,6 +368,28 @@
 					$('resultRows').append(tr);
 				}
 			}
+			$('copyUnmatched').onclick = async () => {
+				const field = $('unmatchedIds');
+				const text = field.value;
+				if (!text) return;
+				let copied = false;
+				try {
+					await navigator.clipboard.writeText(text);
+					copied = true;
+				} catch {
+					// Some EDA iframe environments do not grant Clipboard API access.
+					field.focus();
+					field.select();
+					try {
+						copied = document.execCommand('copy');
+					} catch {
+						copied = false;
+					}
+				}
+				if (field.value === text) {
+					$('copyFeedback').textContent = t(copied ? 'Unmatched numbers copied' : 'Numbers selected; press Ctrl+C to copy');
+				}
+			};
 			function resetResults() {
 				stopWaiting();
 				$('stage').textContent = t('Ready to match');
