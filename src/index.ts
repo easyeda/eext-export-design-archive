@@ -71,7 +71,7 @@ export async function exportDeviceArchiveWithLcscId(): Promise<void> {
  * 导出器件清单
  */
 export async function exportDeviceList(): Promise<void> {
-	eda.sys_IFrame.openIFrame('/iframe/export-device-list.html', 350, 160);
+	await eda.sys_IFrame.openIFrame('/iframe/export-device-list.html', 850, 620);
 }
 
 /**
