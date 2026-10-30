@@ -183,7 +183,7 @@
 				pick('Manufacturer Part', item.manufacturerId),
 				pick('Supplier', item.supplier),
 				supplierPart,
-				supplierPart,
+				pick('Part Number'),
 				pick('Value'),
 				pick('Datasheet'),
 				pick('Description', item.description),
